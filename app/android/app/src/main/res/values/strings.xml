@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">AnnaUnivNotifications</string>
+    <string name="widget_title">AU Notifications</string>
+    <string name="widget_description">Anna University latest notifications</string>
+    <string name="widget_no_notifications">No notifications available</string>
+    <string name="widget_tap_hint">Tap to open COE website</string>
 </resources>

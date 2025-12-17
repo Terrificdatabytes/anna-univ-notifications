@@ -4,7 +4,7 @@
  * @format
  */
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   SafeAreaView,
   FlatList,
@@ -16,14 +16,19 @@ import {
   RefreshControl,
   Linking,
   ActivityIndicator,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import notifee, {EventType} from '@notifee/react-native';
+import {NotificationService} from './NotificationService';
 
 const THEME_COLOR = '#37B3B3';
 // GitHub raw URL to fetch notifications - points to main branch data file
 const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
 const CACHE_KEY = 'anna_univ_notifications';
+const COE_URL = 'https://coe.annauniv.edu';
 
 interface Notification {
   id: string;
@@ -43,12 +48,6 @@ function App(): React.JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
-
-  // Load notifications from cache on mount
-  useEffect(() => {
-    loadCachedNotifications();
-    fetchNotifications();
-  }, []);
 
   const loadCachedNotifications = async () => {
     try {
@@ -86,6 +85,66 @@ function App(): React.JSX.Element {
       setRefreshing(false);
     }
   };
+
+  const initializeNotifications = async () => {
+    await NotificationService.initialize();
+    await NotificationService.requestPermission();
+    // Check for new notifications on app start
+    await NotificationService.checkForNewNotifications();
+  };
+
+  const setupNotificationHandlers = () => {
+    // Handle notification press - redirect to COE website
+    notifee.onForegroundEvent(({type}) => {
+      if (type === EventType.PRESS) {
+        Linking.openURL(COE_URL).catch(err =>
+          console.error('Error opening COE website:', err),
+        );
+      }
+    });
+
+    // Handle notification press when app is in background
+    notifee.onBackgroundEvent(async ({type}) => {
+      if (type === EventType.PRESS) {
+        Linking.openURL(COE_URL).catch(err =>
+          console.error('Error opening COE website:', err),
+        );
+      }
+    });
+  };
+
+  const handleAppStateChange = useCallback(
+    async (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        // Check for new notifications when app comes to foreground
+        await NotificationService.checkForNewNotifications();
+        fetchNotifications();
+      }
+    },
+    [],
+  );
+
+  // Initialize notification service and set up handlers
+  useEffect(() => {
+    initializeNotifications();
+    setupNotificationHandlers();
+
+    // Listen for app state changes to check for new notifications
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [handleAppStateChange]);
+
+  // Load notifications from cache on mount
+  useEffect(() => {
+    loadCachedNotifications();
+    fetchNotifications();
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
