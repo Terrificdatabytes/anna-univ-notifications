@@ -214,6 +214,17 @@ function App(): React.JSX.Element {
     </View>
   );
 
+  const renderFooter = () => (
+    <View style={styles.footerContainer}>
+      <Text style={styles.footerText}>
+        Developed by K.S.PRAVEEN (terrificdatabytes)
+      </Text>
+      <Text style={styles.footerSubtext}>
+        2nd year CSE, Anna University Regional Campus Madurai
+      </Text>
+    </View>
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -245,6 +256,7 @@ function App(): React.JSX.Element {
           />
         }
         ListEmptyComponent={renderEmpty}
+        ListFooterComponent={renderFooter}
       />
     </SafeAreaView>
   );
@@ -363,6 +375,25 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     color: '#999',
+  },
+  footerContainer: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    marginTop: 16,
+  },
+  footerText: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  footerSubtext: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
   },
 });
 
