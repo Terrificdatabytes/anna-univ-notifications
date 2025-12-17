@@ -197,7 +197,7 @@ function App(): React.JSX.Element {
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Anna University</Text>
           <Text style={styles.headerSubtitle}>COE Notifications</Text>
-          <Text style={styles.logoAttribution}>Logo © Anna University</Text>
+          <Text style={styles.logoAttribution}>©DEVELOPED K.S.PRAVEEN AURCM MADURAI</Text>
         </View>
       </View>
       {lastUpdated && (
