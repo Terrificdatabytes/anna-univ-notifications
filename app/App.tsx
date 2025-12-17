@@ -153,7 +153,7 @@ function App(): React.JSX.Element {
 
   const handleNotificationPress = (notification: Notification) => {
     if (notification.link) {
-      Linking.openURL(notification.link).catch(err =>
+      Linking.openURL(COE_URL).catch(err =>
         console.error('Error opening link:', err),
       );
     }
