@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createHash } from 'crypto';
 import { writeFileSync, mkdirSync } from 'fs';
+import https from 'https';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -49,7 +50,12 @@ async function scrapeNotifications() {
     const response = await axios.get(COE_URL, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+      },
+      // Bypass SSL certificate verification because the COE website has an
+      // incomplete certificate chain that causes UNABLE_TO_VERIFY_LEAF_SIGNATURE errors
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false
+      })
     });
     
     const $ = cheerio.load(response.data);
