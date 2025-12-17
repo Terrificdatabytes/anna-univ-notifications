@@ -18,12 +18,14 @@ import {
   ActivityIndicator,
   AppState,
   AppStateStatus,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee, {EventType} from '@notifee/react-native';
 import {NotificationService} from './NotificationService';
 
 const THEME_COLOR = '#37B3B3';
+const LOGO_IMAGE = require('./assets/images/anna-university3770.jpg');
 // GitHub raw URL to fetch notifications - points to main branch data file
 const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
@@ -190,8 +192,13 @@ function App(): React.JSX.Element {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>Anna University</Text>
-      <Text style={styles.headerSubtitle}>COE Notifications</Text>
+      <View style={styles.headerTop}>
+        <Image source={LOGO_IMAGE} style={styles.logo} resizeMode="contain" />
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>Anna University</Text>
+          <Text style={styles.headerSubtitle}>COE Notifications</Text>
+        </View>
+      </View>
       {lastUpdated && (
         <Text style={styles.lastUpdatedText}>
           Last updated: {formatDate(lastUpdated)}
@@ -204,6 +211,17 @@ function App(): React.JSX.Element {
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>No notifications available</Text>
       <Text style={styles.emptySubtext}>Pull down to refresh</Text>
+    </View>
+  );
+
+  const renderFooter = () => (
+    <View style={styles.footerContainer}>
+      <Text style={styles.footerText}>
+        Developed by K.S.PRAVEEN (terrificdatabytes)
+      </Text>
+      <Text style={styles.footerSubtext}>
+        2nd year CSE, Anna University Regional Campus Madurai
+      </Text>
     </View>
   );
 
@@ -238,6 +256,7 @@ function App(): React.JSX.Element {
           />
         }
         ListEmptyComponent={renderEmpty}
+        ListFooterComponent={renderFooter}
       />
     </SafeAreaView>
   );
@@ -257,6 +276,19 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    marginRight: 12,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 24,
@@ -343,6 +375,25 @@ const styles = StyleSheet.create({
   emptySubtext: {
     fontSize: 14,
     color: '#999',
+  },
+  footerContainer: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    marginTop: 16,
+  },
+  footerText: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  footerSubtext: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
   },
 });
 
