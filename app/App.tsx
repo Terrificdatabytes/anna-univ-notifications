@@ -197,6 +197,7 @@ function App(): React.JSX.Element {
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Anna University</Text>
           <Text style={styles.headerSubtitle}>COE Notifications</Text>
+          <Text style={styles.logoAttribution}>Logo © Anna University</Text>
         </View>
       </View>
       {lastUpdated && (
@@ -300,6 +301,13 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginTop: 4,
     opacity: 0.9,
+  },
+  logoAttribution: {
+    fontSize: 10,
+    color: '#ffffff',
+    marginTop: 2,
+    opacity: 0.7,
+    fontStyle: 'italic',
   },
   lastUpdatedText: {
     fontSize: 12,
