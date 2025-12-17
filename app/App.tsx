@@ -152,9 +152,10 @@ function App(): React.JSX.Element {
   };
 
   const handleNotificationPress = (notification: Notification) => {
+    // Only open COE website if notification has a link (defensive check)
     if (notification.link) {
-      Linking.openURL(notification.link).catch(err =>
-        console.error('Error opening link:', err),
+      Linking.openURL(COE_URL).catch(err =>
+        console.error('Error opening COE website:', err),
       );
     }
   };
