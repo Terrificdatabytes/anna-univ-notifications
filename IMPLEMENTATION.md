@@ -42,12 +42,17 @@ Successfully implemented a complete automated notification system for Anna Unive
   - Offline caching with AsyncStorage
   - Tap to open official links in browser
   - Error handling with HTTP status checks
+  - **Push notifications** using @notifee/react-native
+  - **Home screen widget** displaying latest notifications
+  - Automatic notification checks on app startup and foreground
+  - Direct link to coe.annauniv.edu when tapping notifications or widget
 - **UI Components**:
   - Header with Anna University branding
   - Notification cards with title and link
   - Loading indicator
   - Empty state message
   - Last updated timestamp
+  - Native Android widget with teal theme
 
 ## Project Structure
 ```
@@ -61,8 +66,14 @@ Successfully implemented a complete automated notification system for Anna Unive
 │   └── index.js                     # Scraper script
 ├── app/
 │   ├── android/                     # Android project files
+│   │   ├── app/src/main/java/com/annaunivnotifications/
+│   │   │   └── NotificationWidgetProvider.kt  # Widget implementation
+│   │   └── app/src/main/res/
+│   │       ├── layout/widget_layout.xml       # Widget UI layout
+│   │       └── xml/widget_info.xml            # Widget metadata
 │   ├── App.tsx                      # Main React Native app
-│   └── package.json                 # Dependencies with AsyncStorage
+│   ├── NotificationService.ts       # Push notification service
+│   └── package.json                 # Dependencies: AsyncStorage, Notifee
 ├── data/
 │   └── notifications.json           # Scraped data (sample included)
 └── README.md                        # Documentation
@@ -137,6 +148,8 @@ npm run android  # Requires Android emulator or device
 - React Native 0.73
 - TypeScript
 - AsyncStorage
+- @notifee/react-native 7.8.2 (for push notifications)
+- Kotlin (for native Android widget)
 - GitHub Actions
 - Axios 1.12.0
 - Cheerio
