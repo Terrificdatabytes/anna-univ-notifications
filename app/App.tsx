@@ -18,6 +18,7 @@ import {
   ActivityIndicator,
   AppState,
   AppStateStatus,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee, {EventType} from '@notifee/react-native';
@@ -190,8 +191,17 @@ function App(): React.JSX.Element {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>Anna University</Text>
-      <Text style={styles.headerSubtitle}>COE Notifications</Text>
+      <View style={styles.headerTop}>
+        <Image
+          source={require('./assets/images/anna-university3770.jpg')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>Anna University</Text>
+          <Text style={styles.headerSubtitle}>COE Notifications</Text>
+        </View>
+      </View>
       {lastUpdated && (
         <Text style={styles.lastUpdatedText}>
           Last updated: {formatDate(lastUpdated)}
@@ -257,6 +267,19 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    marginRight: 12,
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 24,
