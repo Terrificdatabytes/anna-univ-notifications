@@ -1,0 +1,19 @@
+# Node.js
+scraper/node_modules/
+scraper/package-lock.json
+
+# App
+app/node_modules/
+app/package-lock.json
+
+# Build artifacts
+app/android/app/build/
+app/android/.gradle/
+app/ios/build/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
