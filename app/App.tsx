@@ -25,6 +25,7 @@ import notifee, {EventType} from '@notifee/react-native';
 import {NotificationService} from './NotificationService';
 
 const THEME_COLOR = '#37B3B3';
+const LOGO_IMAGE = require('./assets/images/anna-university3770.jpg');
 // GitHub raw URL to fetch notifications - points to main branch data file
 const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
@@ -192,11 +193,7 @@ function App(): React.JSX.Element {
   const renderHeader = () => (
     <View style={styles.header}>
       <View style={styles.headerTop}>
-        <Image
-          source={require('./assets/images/anna-university3770.jpg')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Image source={LOGO_IMAGE} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Anna University</Text>
           <Text style={styles.headerSubtitle}>COE Notifications</Text>
