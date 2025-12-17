@@ -11,6 +11,9 @@ An automated system that fetches notifications from Anna University COE website 
 - ✅ Clean notification list UI with teal theme (#37B3B3)
 - ✅ Tap to open official links in browser
 - ✅ "NEW" badge for new notifications
+- ✅ **Push notifications** for new Anna University notifications
+- ✅ **Home screen widget** to view latest notifications
+- ✅ Direct link to COE website when tapping notifications
 
 ## 📁 Project Structure
 
@@ -48,6 +51,9 @@ An automated system that fetches notifications from Anna University COE website 
 - Displays in a clean list with pull-to-refresh
 - Offline caching for better performance
 - Teal theme matching COE website
+- **Push Notifications**: Automatically checks for new notifications when app is opened or comes to foreground
+- **Home Screen Widget**: Add widget to home screen to see latest notifications at a glance
+- **Direct COE Link**: Tap any push notification or widget to open coe.annauniv.edu
 
 ## 📱 Installation
 
@@ -56,6 +62,12 @@ An automated system that fetches notifications from Anna University COE website 
 2. Download the latest APK file
 3. Enable "Install from Unknown Sources" in Android settings
 4. Install the APK
+5. Grant notification permissions when prompted
+6. Add the widget to your home screen:
+   - Long press on home screen
+   - Select "Widgets"
+   - Find "AU Notifications" widget
+   - Drag to home screen
 
 ### For Developers
 
@@ -105,6 +117,8 @@ The APK is built automatically via GitHub Actions:
 
 - **Scraper**: Node.js, Axios, Cheerio
 - **App**: React Native 0.73, TypeScript
+- **Notifications**: @notifee/react-native
+- **Widget**: Native Android widget (Kotlin)
 - **Storage**: AsyncStorage
 - **CI/CD**: GitHub Actions
 

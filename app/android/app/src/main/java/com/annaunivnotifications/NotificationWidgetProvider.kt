@@ -6,16 +6,20 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.widget.RemoteViews
 import org.json.JSONObject
 import java.net.URL
-import kotlin.concurrent.thread
+import java.util.concurrent.Executors
 
 class NotificationWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val NOTIFICATIONS_URL = "https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json"
         private const val COE_URL = "https://coe.annauniv.edu"
+        private val executor = Executors.newSingleThreadExecutor()
+        private val mainHandler = Handler(Looper.getMainLooper())
     }
 
     override fun onUpdate(
@@ -34,8 +38,8 @@ class NotificationWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
-        // Fetch notifications in background thread
-        thread {
+        // Fetch notifications in background executor
+        executor.execute {
             try {
                 val data = fetchNotifications()
                 val views = RemoteViews(context.packageName, R.layout.widget_layout)
@@ -75,8 +79,10 @@ class NotificationWidgetProvider : AppWidgetProvider() {
                 )
                 views.setOnClickPendingIntent(R.id.widget_container, pendingIntent)
 
-                // Update the widget
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+                // Update the widget on main thread
+                mainHandler.post {
+                    appWidgetManager.updateAppWidget(appWidgetId, views)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -95,15 +101,5 @@ class NotificationWidgetProvider : AppWidgetProvider() {
             e.printStackTrace()
             null
         }
-    }
-
-    override fun onEnabled(context: Context) {
-        // Called when the first widget is created
-        super.onEnabled(context)
-    }
-
-    override fun onDisabled(context: Context) {
-        // Called when the last widget is removed
-        super.onDisabled(context)
     }
 }

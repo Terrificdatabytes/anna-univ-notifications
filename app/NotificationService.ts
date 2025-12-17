@@ -141,8 +141,6 @@ export class NotificationService {
               launchActivity: 'default',
             },
             smallIcon: 'ic_launcher',
-            // Redirect to COE website when tapped
-            tag: COE_URL,
           },
           data: {
             url: COE_URL,
@@ -162,7 +160,6 @@ export class NotificationService {
               launchActivity: 'default',
             },
             smallIcon: 'ic_launcher',
-            tag: COE_URL,
           },
           data: {
             url: COE_URL,
