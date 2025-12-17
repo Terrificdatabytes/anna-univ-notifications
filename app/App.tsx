@@ -20,6 +20,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const THEME_COLOR = '#37B3B3';
+// GitHub raw URL to fetch notifications - points to main branch data file
 const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
 const CACHE_KEY = 'anna_univ_notifications';
@@ -65,6 +66,11 @@ function App(): React.JSX.Element {
   const fetchNotifications = async () => {
     try {
       const response = await fetch(NOTIFICATIONS_URL);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data: NotificationData = await response.json();
 
       setNotifications(data.notifications);
