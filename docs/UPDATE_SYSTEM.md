@@ -243,7 +243,7 @@ Possible improvements:
 
 ## 📚 Related Documentation
 
-- [FCM Setup Guide](FCM_SETUP.md) - Push notifications setup
+- [ntfy.sh Setup Guide](NTFY_SETUP.md) - Push notifications setup
 - [Quick Start Guide](QUICKSTART.md) - Initial app setup
 - [README](../README.md) - Full project documentation
 

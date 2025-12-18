@@ -1,6 +1,9 @@
 /**
  * Anna University Notifications App
  *
+ * Push notifications are delivered via ntfy.sh - a free, open-source notification service.
+ * Users can receive notifications by subscribing to the ntfy topic via the ntfy app.
+ *
  * @format
  */
 
@@ -21,8 +24,7 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee, {EventType, AndroidImportance} from '@notifee/react-native';
-import messaging from '@react-native-firebase/messaging';
+import notifee, {EventType} from '@notifee/react-native';
 import {NotificationService} from './NotificationService';
 import {UpdateService, UpdateInfo} from './UpdateService';
 import UpdateNotification from './UpdateNotification';
@@ -131,51 +133,6 @@ function App(): React.JSX.Element {
         );
       }
     });
-
-    // Handle FCM messages when app is in foreground
-    messaging().onMessage(async remoteMessage => {
-      console.log('FCM message received in foreground:', remoteMessage);
-      
-      // Display notification using notifee
-      if (remoteMessage.notification) {
-        await notifee.displayNotification({
-          title: remoteMessage.notification.title || 'Anna University Notification',
-          body: remoteMessage.notification.body || 'New notification',
-          android: {
-            channelId: 'anna-univ-notifications',
-            importance: AndroidImportance.HIGH,
-            pressAction: {
-              id: 'default',
-              launchActivity: 'default',
-            },
-            smallIcon: 'ic_launcher',
-          },
-          data: {
-            url: COE_URL,
-          },
-        });
-      }
-    });
-
-    // Handle FCM messages when app is opened from quit state
-    messaging().onNotificationOpenedApp(remoteMessage => {
-      console.log('Notification caused app to open from background:', remoteMessage);
-      Linking.openURL(COE_URL).catch(err =>
-        console.error('Error opening COE website:', err),
-      );
-    });
-
-    // Check if app was opened by a notification when it was closed
-    messaging()
-      .getInitialNotification()
-      .then(remoteMessage => {
-        if (remoteMessage) {
-          console.log('Notification caused app to open from quit state:', remoteMessage);
-          Linking.openURL(COE_URL).catch(err =>
-            console.error('Error opening COE website:', err),
-          );
-        }
-      });
   };
 
   const handleAppStateChange = useCallback(
