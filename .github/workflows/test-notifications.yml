@@ -13,7 +13,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     
     steps:
       - name: Checkout repository
@@ -40,19 +40,6 @@ jobs:
         run: |
           cd scraper
           npm start
-      
-      - name: Display scraped notifications
-        run: |
-          echo "================================================"
-          echo "SCRAPED NOTIFICATIONS:"
-          echo "================================================"
-          cat data/notifications.json
-          echo ""
-          echo "================================================"
-          echo "TEST COMPLETED SUCCESSFULLY"
-          echo "Total notifications found: $(jq '.count' data/notifications.json)"
-          echo "Last updated: $(jq -r '.lastUpdated' data/notifications.json)"
-          echo "================================================"
       
       - name: Verify notification data
         run: |
@@ -86,3 +73,16 @@ jobs:
           
           echo "✓ All validation checks passed!"
           echo "✓ Notification system is working correctly"
+      
+      - name: Display scraped notifications
+        run: |
+          echo "================================================"
+          echo "SCRAPED NOTIFICATIONS:"
+          echo "================================================"
+          cat data/notifications.json || echo "Failed to read notifications.json"
+          echo ""
+          echo "================================================"
+          echo "TEST COMPLETED SUCCESSFULLY"
+          echo "Total notifications found: $(jq '.count' data/notifications.json 2>/dev/null || echo 'N/A')"
+          echo "Last updated: $(jq -r '.lastUpdated' data/notifications.json 2>/dev/null || echo 'N/A')"
+          echo "================================================"
