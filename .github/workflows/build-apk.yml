@@ -37,13 +37,23 @@ jobs:
       - name: Update version in build.gradle
         run: |
           VERSION="${{ inputs.version }}"
+          # Extract numeric version only (remove any non-numeric suffixes like " (beta)")
+          NUMERIC_VERSION=$(echo "$VERSION" | sed 's/[[:space:]].*//')
+          
           # Parse version to create version code (e.g., 1.2 -> 10200)
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3 2>/dev/null || echo 0)
+          MAJOR=$(echo "$NUMERIC_VERSION" | cut -d. -f1)
+          MINOR=$(echo "$NUMERIC_VERSION" | cut -d. -f2)
+          PATCH=$(echo "$NUMERIC_VERSION" | cut -d. -f3 2>/dev/null || echo 0)
+          
+          # Ensure we have numeric values (default to 0 if empty)
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+          
           VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
           
           echo "Version: $VERSION"
+          echo "Numeric Version: $NUMERIC_VERSION"
           echo "Version Code: $VERSION_CODE"
           
           # Update build.gradle
