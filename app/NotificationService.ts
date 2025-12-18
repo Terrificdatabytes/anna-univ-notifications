@@ -124,7 +124,8 @@ export class NotificationService {
 
   /**
    * Check for new notifications and update seen IDs
-   * Note: Push notifications are now handled by FCM server-side
+   * Note: Push notifications are now handled by FCM server-side (GitHub Actions)
+   * This method updates the local cache and tracks seen notifications
    */
   static async checkForNewNotifications(): Promise<void> {
     try {
@@ -137,13 +138,20 @@ export class NotificationService {
 
       const data: NotificationData = await response.json();
       const seenIds = await this.getSeenIds();
+      let newCount = 0;
 
-      // Mark all current notifications as seen
+      // Track which notifications are new (not seen before)
       for (const notification of data.notifications) {
-        seenIds.add(notification.id);
+        if (!seenIds.has(notification.id)) {
+          newCount++;
+          seenIds.add(notification.id);
+        }
       }
 
-      await this.saveSeenIds(seenIds);
+      if (newCount > 0) {
+        console.log(`Found ${newCount} new notification(s)`);
+        await this.saveSeenIds(seenIds);
+      }
 
       // Update cache
       await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));

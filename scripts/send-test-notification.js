@@ -71,7 +71,6 @@ async function sendNotification() {
         priority: 'high',
         notification: {
           sound: 'default',
-          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
         },
       },
     };
