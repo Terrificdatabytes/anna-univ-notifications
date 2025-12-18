@@ -2,6 +2,16 @@ name: Build APK
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0, 1.1, 2.0)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes'
+        required: false
+        default: 'Bug fixes and improvements'
+        type: string
 
 jobs:
   build:
@@ -24,6 +34,26 @@ jobs:
         with:
           node-version: '20'
       
+      - name: Update version in build.gradle
+        run: |
+          VERSION="${{ inputs.version }}"
+          # Parse version to create version code (e.g., 1.2 -> 10200)
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3 2>/dev/null || echo 0)
+          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+          
+          echo "Version: $VERSION"
+          echo "Version Code: $VERSION_CODE"
+          
+          # Update build.gradle
+          sed -i "s/versionCode .*/versionCode $VERSION_CODE/" app/android/app/build.gradle
+          sed -i "s/versionName .*/versionName \"$VERSION\"/" app/android/app/build.gradle
+          
+          # Update UpdateService.ts
+          sed -i "s/CURRENT_VERSION_CODE = .*/CURRENT_VERSION_CODE = $VERSION_CODE;/" app/UpdateService.ts
+          sed -i "s/CURRENT_VERSION_NAME = .*/CURRENT_VERSION_NAME = '$VERSION';/" app/UpdateService.ts
+      
       - name: Install dependencies
         run: |
           cd app
@@ -35,32 +65,57 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
       
+      - name: Rename APK
+        run: |
+          mv app/android/app/build/outputs/apk/release/app-release.apk \
+             app/android/app/build/outputs/apk/release/anna-univ-notifications-v${{ inputs.version }}.apk
+      
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: anna-univ-notifications-apk
-          path: app/android/app/build/outputs/apk/release/app-release.apk
+          name: anna-univ-notifications-v${{ inputs.version }}
+          path: app/android/app/build/outputs/apk/release/anna-univ-notifications-v${{ inputs.version }}.apk
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: app/android/app/build/outputs/apk/release/app-release.apk
-          tag_name: v${{ github.run_number }}
-          name: Release v${{ github.run_number }}
+          files: app/android/app/build/outputs/apk/release/anna-univ-notifications-v${{ inputs.version }}.apk
+          tag_name: v${{ inputs.version }}
+          name: Anna University Notifications v${{ inputs.version }}
           body: |
-            Anna University Notifications App - Release Build
+            # Anna University Notifications App v${{ inputs.version }}
+            
+            ## 📱 Download & Install
             
             Download the APK below and install on your Android device.
             
-            **Installation:**
-            1. Download the APK file
-            2. Enable "Install from Unknown Sources" in your Android settings
+            **Installation Steps:**
+            1. Download `anna-univ-notifications-v${{ inputs.version }}.apk`
+            2. Enable "Install from Unknown Sources" in Android settings
             3. Open the APK file to install
+            4. Grant notification permissions when prompted
             
-            **Features:**
-            - View latest notifications from Anna University COE
-            - Pull to refresh
-            - Offline caching
-            - Direct links to official documents
+            ## 🎉 What's New
+            
+            ${{ inputs.release_notes }}
+            
+            ## ✨ Features
+            
+            - ✅ Real-time push notifications for new Anna University announcements
+            - ✅ Automatic checks every 15 minutes
+            - ✅ Manual test notifications via GitHub Actions
+            - ✅ Home screen widget
+            - ✅ Pull to refresh
+            - ✅ Offline caching
+            - ✅ Direct links to official documents
+            - ✅ **Automatic update notifications**
+            
+            ## 🔔 Push Notifications Setup
+            
+            To receive push notifications, follow the [FCM Setup Guide](https://github.com/Terrificdatabytes/anna-univ-notifications/blob/main/docs/FCM_SETUP.md).
+            
+            ---
+            
+            **Built on:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

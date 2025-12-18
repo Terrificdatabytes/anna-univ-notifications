@@ -24,6 +24,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import notifee, {EventType, AndroidImportance} from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import {NotificationService} from './NotificationService';
+import {UpdateService, UpdateInfo} from './UpdateService';
+import UpdateNotification from './UpdateNotification';
 
 const THEME_COLOR = '#37B3B3';
 const LOGO_IMAGE = require('./assets/images/anna-university3770.jpg');
@@ -51,6 +53,8 @@ function App(): React.JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
 
   const loadCachedNotifications = async () => {
     try {
@@ -86,6 +90,19 @@ function App(): React.JSX.Element {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const checkForAppUpdate = async () => {
+    try {
+      const update = await UpdateService.checkForUpdate();
+      if (update && update.available) {
+        setUpdateInfo(update);
+        setShowUpdateBanner(true);
+        console.log('App update available:', update.latestVersion);
+      }
+    } catch (error) {
+      console.error('Error checking for app update:', error);
     }
   };
 
@@ -176,6 +193,7 @@ function App(): React.JSX.Element {
   useEffect(() => {
     initializeNotifications();
     setupNotificationHandlers();
+    checkForAppUpdate(); // Check for app updates on startup
 
     // Listen for app state changes to check for new notifications
     const subscription = AppState.addEventListener(
@@ -288,6 +306,12 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME_COLOR} />
+      {showUpdateBanner && updateInfo && (
+        <UpdateNotification
+          updateInfo={updateInfo}
+          onDismiss={() => setShowUpdateBanner(false)}
+        />
+      )}
       {renderHeader()}
       <FlatList
         data={notifications}

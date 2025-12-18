@@ -6,8 +6,9 @@ An automated system that fetches notifications from Anna University COE website 
 
 - ✅ Automatic notification scraping every 15 minutes
 - ✅ **Real-time push notifications** when new notifications are posted on COE website
+- ✅ **Automatic update notifications** - app checks for new versions and provides direct APK download link
 - ✅ Manual test notification workflow to test push notifications
-- ✅ Manual APK build trigger
+- ✅ Manual APK build trigger with version management
 - ✅ Pull-to-refresh in the app
 - ✅ Offline caching with AsyncStorage
 - ✅ Clean notification list UI with teal theme (#37B3B3)
@@ -65,6 +66,11 @@ An automated system that fetches notifications from Anna University COE website 
 - Displays in a clean list with pull-to-refresh
 - Offline caching for better performance
 - Teal theme matching COE website
+- **Automatic Update Checker**:
+  - Checks for new app versions from GitHub releases (once per day)
+  - Shows update banner when new version is available
+  - Provides direct APK download link
+  - Displays release notes
 - **Firebase Cloud Messaging Integration**:
   - Registers device with FCM on first launch
   - Subscribes to "all-devices" topic for push notifications
@@ -126,18 +132,28 @@ npm run android
 
 ## 🏗️ Building APK
 
-The APK is built automatically via GitHub Actions:
+The APK is built automatically via GitHub Actions with proper version management:
 
 1. **Set up Firebase** (first time only):
    - Follow the [FCM Setup Guide](docs/FCM_SETUP.md)
    - Place `google-services.json` in `app/android/app/`
    - Add `FCM_SERVER_KEY` to GitHub repository secrets
 
-2. **Build APK**:
+2. **Build APK with Version**:
    - Go to **Actions** tab
    - Select **Build APK** workflow
    - Click **Run workflow**
-   - Download the APK from artifacts or releases
+   - Enter version number (e.g., "1.0", "1.1", "2.0")
+   - Enter release notes
+   - Click **Run workflow**
+   - APK will be created as a GitHub Release with the specified version
+   - Download from Releases page: `anna-univ-notifications-v{version}.apk`
+
+3. **Version Management**:
+   - Version format: `MAJOR.MINOR` or `MAJOR.MINOR.PATCH` (e.g., 1.0, 1.1, 2.0.1)
+   - Version code is auto-calculated: `MAJOR*10000 + MINOR*100 + PATCH`
+   - Example: v1.2 = version code 10200, v2.0.1 = version code 20001
+   - The app automatically updates version info in code during build
 
 ## 🧪 Testing Notification System
 
