@@ -154,6 +154,25 @@ The APK is built automatically via GitHub Actions with proper version management
    - Version code is auto-calculated: `MAJOR*10000 + MINOR*100 + PATCH`
    - Example: v1.2 = version code 10200, v2.0.1 = version code 20001
    - The app automatically updates version info in code during build
+   - See [Update System Guide](docs/UPDATE_SYSTEM.md) for detailed version management
+
+## 🔄 App Updates
+
+The app includes an automatic update system:
+
+- **Checks for updates** once every 24 hours from GitHub releases
+- **Shows update banner** when new version is available
+- **Direct download link** to latest APK
+- **Release notes** displayed in-app
+- **Zero configuration** - works automatically for all users
+
+When a new version is released:
+1. Users see a green update banner on app startup
+2. Tap "Update" to view release notes
+3. Tap "Download" to get the latest APK
+4. Install and enjoy new features! 🎉
+
+For detailed information about the update system and releasing new versions, see the [Update System Guide](docs/UPDATE_SYSTEM.md).
 
 ## 🧪 Testing Notification System
 
