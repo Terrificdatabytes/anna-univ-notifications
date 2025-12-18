@@ -93,7 +93,7 @@ jobs:
           path: app/android/app/build/outputs/apk/release/anna-univ-notifications-v${{ inputs.version }}.apk
       
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: app/android/app/build/outputs/apk/release/anna-univ-notifications-v${{ inputs.version }}.apk
           tag_name: v${{ inputs.version }}
