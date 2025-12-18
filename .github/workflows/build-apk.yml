@@ -79,11 +79,11 @@ jobs:
           def parse_and_write_json(text: str):
             # parse and pretty-print JSON output
             data = json.loads(text)
-            path.write_text(json.dumps(data, indent=2))
+            path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
           try:
             parse_and_write_json(content)
-          except json.JSONDecodeError as raw_err:
+          except json.JSONDecodeError:
             try:
               decoded_bytes = base64.b64decode(content)
             except binascii.Error as e:
