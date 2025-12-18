@@ -67,7 +67,38 @@ jobs:
       - name: Create google-services.json
         run: |
           mkdir -p app/android/app
-          echo "$GOOGLE_SERVICES_JSON" > app/android/app/google-services.json
+          python - <<'PY'
+          import base64, binascii, json, os, pathlib
+
+          content = os.environ.get("GOOGLE_SERVICES_JSON", "")
+          path = pathlib.Path("app/android/app/google-services.json")
+
+          if not content.strip():
+            raise SystemExit("GOOGLE_SERVICES_JSON is empty or missing")
+
+          def parse_and_write_json(text: str):
+            # parse and pretty-print JSON output
+            data = json.loads(text)
+            path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+          try:
+            parse_and_write_json(content)
+          except json.JSONDecodeError:
+            try:
+              decoded_bytes = base64.b64decode(content)
+            except binascii.Error as e:
+              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: failed to decode base64 content ({e})")
+
+            try:
+              decoded = decoded_bytes.decode("utf-8")
+            except UnicodeDecodeError as e:
+              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: base64 content is not UTF-8 ({e})")
+
+            try:
+              parse_and_write_json(decoded)
+            except json.JSONDecodeError as e:
+              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: content is neither valid JSON nor valid base64-encoded JSON ({e})")
+          PY
         shell: bash
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
