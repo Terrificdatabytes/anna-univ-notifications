@@ -21,8 +21,11 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee, {EventType} from '@notifee/react-native';
+import notifee, {EventType, AndroidImportance} from '@notifee/react-native';
+import messaging from '@react-native-firebase/messaging';
 import {NotificationService} from './NotificationService';
+import {UpdateService, UpdateInfo} from './UpdateService';
+import UpdateNotification from './UpdateNotification';
 
 const THEME_COLOR = '#37B3B3';
 const LOGO_IMAGE = require('./assets/images/anna-university3770.jpg');
@@ -50,6 +53,8 @@ function App(): React.JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
 
   const loadCachedNotifications = async () => {
     try {
@@ -88,6 +93,19 @@ function App(): React.JSX.Element {
     }
   };
 
+  const checkForAppUpdate = async () => {
+    try {
+      const update = await UpdateService.checkForUpdate();
+      if (update && update.available) {
+        setUpdateInfo(update);
+        setShowUpdateBanner(true);
+        console.log('App update available:', update.latestVersion);
+      }
+    } catch (error) {
+      console.error('Error checking for app update:', error);
+    }
+  };
+
   const initializeNotifications = async () => {
     await NotificationService.initialize();
     await NotificationService.requestPermission();
@@ -113,6 +131,51 @@ function App(): React.JSX.Element {
         );
       }
     });
+
+    // Handle FCM messages when app is in foreground
+    messaging().onMessage(async remoteMessage => {
+      console.log('FCM message received in foreground:', remoteMessage);
+      
+      // Display notification using notifee
+      if (remoteMessage.notification) {
+        await notifee.displayNotification({
+          title: remoteMessage.notification.title || 'Anna University Notification',
+          body: remoteMessage.notification.body || 'New notification',
+          android: {
+            channelId: 'anna-univ-notifications',
+            importance: AndroidImportance.HIGH,
+            pressAction: {
+              id: 'default',
+              launchActivity: 'default',
+            },
+            smallIcon: 'ic_launcher',
+          },
+          data: {
+            url: COE_URL,
+          },
+        });
+      }
+    });
+
+    // Handle FCM messages when app is opened from quit state
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log('Notification caused app to open from background:', remoteMessage);
+      Linking.openURL(COE_URL).catch(err =>
+        console.error('Error opening COE website:', err),
+      );
+    });
+
+    // Check if app was opened by a notification when it was closed
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log('Notification caused app to open from quit state:', remoteMessage);
+          Linking.openURL(COE_URL).catch(err =>
+            console.error('Error opening COE website:', err),
+          );
+        }
+      });
   };
 
   const handleAppStateChange = useCallback(
@@ -130,6 +193,7 @@ function App(): React.JSX.Element {
   useEffect(() => {
     initializeNotifications();
     setupNotificationHandlers();
+    checkForAppUpdate(); // Check for app updates on startup
 
     // Listen for app state changes to check for new notifications
     const subscription = AppState.addEventListener(
@@ -242,6 +306,12 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME_COLOR} />
+      {showUpdateBanner && updateInfo && (
+        <UpdateNotification
+          updateInfo={updateInfo}
+          onDismiss={() => setShowUpdateBanner(false)}
+        />
+      )}
       {renderHeader()}
       <FlatList
         data={notifications}

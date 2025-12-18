@@ -2,7 +2,7 @@ name: Fetch Notifications
 
 on:
   schedule:
-    # Run every 30 minutes
+    # Run every 15 minutes
     - cron: '*/15 * * * *'
   workflow_dispatch:
 
@@ -21,6 +21,16 @@ jobs:
         with:
           node-version: '20'
       
+      - name: Save previous notifications
+        run: |
+          if [ -f data/notifications.json ]; then
+            cp data/notifications.json data/notifications.json.old
+            echo "Previous notifications saved"
+          else
+            echo '{"notifications":[],"lastUpdated":"","count":0}' > data/notifications.json.old
+            echo "No previous notifications found, created empty file"
+          fi
+      
       - name: Install dependencies
         run: |
           cd scraper
@@ -31,10 +41,57 @@ jobs:
           cd scraper
           npm start
       
+      - name: Detect new notifications
+        id: detect_new
+        run: |
+          # Check if there are new notifications by comparing counts
+          OLD_COUNT=$(jq '.count' data/notifications.json.old 2>/dev/null || echo 0)
+          NEW_COUNT=$(jq '.count' data/notifications.json 2>/dev/null || echo 0)
+          
+          echo "Previous count: $OLD_COUNT"
+          echo "New count: $NEW_COUNT"
+          
+          if [ "$NEW_COUNT" -gt "$OLD_COUNT" ]; then
+            NEW_NOTIF_COUNT=$((NEW_COUNT - OLD_COUNT))
+            echo "new_notifications=true" >> $GITHUB_OUTPUT
+            echo "count=$NEW_NOTIF_COUNT" >> $GITHUB_OUTPUT
+            
+            # Get the title of the first new notification
+            FIRST_NEW_TITLE=$(jq -r '.notifications[0].title' data/notifications.json)
+            echo "first_title=$FIRST_NEW_TITLE" >> $GITHUB_OUTPUT
+            
+            echo "✅ Found $NEW_NOTIF_COUNT new notification(s)"
+          else
+            echo "new_notifications=false" >> $GITHUB_OUTPUT
+            echo "count=0" >> $GITHUB_OUTPUT
+            echo "first_title=" >> $GITHUB_OUTPUT
+            echo "ℹ️  No new notifications"
+          fi
+      
+      - name: Send FCM push notification
+        if: steps.detect_new.outputs.new_notifications == 'true'
+        env:
+          FCM_SERVER_KEY: ${{ secrets.FCM_SERVER_KEY }}
+        run: |
+          echo "Sending push notification for new Anna University notifications..."
+          
+          COUNT="${{ steps.detect_new.outputs.count }}"
+          TITLE="${{ steps.detect_new.outputs.first_title }}"
+          
+          if [ "$COUNT" -eq "1" ]; then
+            node scripts/send-new-notification.js "$TITLE" 1
+          else
+            node scripts/send-new-notification.js "$TITLE" "$COUNT"
+          fi
+      
       - name: Commit and push changes
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add data/notifications.json
+          
+          # Remove old backup file
+          rm -f data/notifications.json.old
+          
           git diff --staged --quiet || git commit -m "Update notifications - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           git push
