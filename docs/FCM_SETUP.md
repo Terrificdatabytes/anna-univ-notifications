@@ -30,11 +30,8 @@ This guide will help you set up Firebase Cloud Messaging (FCM) to enable push no
 
 1. After registering the app, you'll be prompted to download `google-services.json`
 2. Click **Download google-services.json**
-3. Save this file in your repository at:
-   ```
-   app/android/app/google-services.json
-   ```
-4. **Important**: If you're contributing to the public repository, do NOT commit this file. Add it to `.gitignore`
+3. Save this file securely on your local machine
+4. **Important**: You'll need to add the contents of this file as a GitHub secret in Step 5. Do NOT commit this file to the repository (it's already in `.gitignore` for security).
 
 ## Step 4: Get Firebase Cloud Messaging Server Key
 
@@ -45,26 +42,45 @@ This guide will help you set up Firebase Cloud Messaging (FCM) to enable push no
    - **Sender ID**: Also note this down
 4. Copy the **Server key** (it starts with something like `AAAAxxxxxxx...`)
 
-## Step 5: Add FCM_SERVER_KEY to GitHub Secrets
+## Step 5: Add Secrets to GitHub
+
+To enable automated builds and push notifications, you need to add two secrets to your GitHub repository:
+
+### 5.1: Add GOOGLE_SERVICES_JSON Secret
 
 1. Go to your GitHub repository
 2. Click **Settings** → **Secrets and variables** → **Actions**
 3. Click **New repository secret**
 4. Add the following secret:
-   - **Name**: `FCM_SERVER_KEY`
-   - **Value**: Paste the Server key you copied from Firebase Console
+   - **Name**: `GOOGLE_SERVICES_JSON`
+   - **Value**: Paste the entire contents of your `google-services.json` file
+     - Open the `google-services.json` file in a text editor
+     - Copy the entire JSON content (including the outer curly braces)
+     - Paste it as the secret value
 5. Click **Add secret**
+
+### 5.2: Add FCM_SERVER_KEY Secret
+
+1. In the same **Secrets and variables** → **Actions** page
+2. Click **New repository secret** again
+3. Add the following secret:
+   - **Name**: `FCM_SERVER_KEY`
+   - **Value**: Paste the Server key you copied from Firebase Console (from Step 4)
+4. Click **Add secret**
 
 ## Step 6: Build and Install the App
 
-1. Place the `google-services.json` file in `app/android/app/`
-2. Build the APK:
+1. With the secrets configured in GitHub (from Step 5), you can now build the APK automatically:
    - Go to **Actions** tab in GitHub
    - Select **Build APK** workflow
    - Click **Run workflow**
-   - Download the built APK
-3. Install the APK on your Android device
-4. Open the app and grant notification permissions
+   - Enter a version number and release notes
+   - Click **Run workflow** to start the build
+   - Download the built APK from the workflow artifacts or GitHub Releases
+2. Install the APK on your Android device
+3. Open the app and grant notification permissions
+
+**Note**: The `google-services.json` file is automatically created during the GitHub Actions build from the `GOOGLE_SERVICES_JSON` secret. You don't need to commit this file to the repository.
 
 ## Step 7: Test the Notification System
 
@@ -101,9 +117,10 @@ This guide will help you set up Firebase Cloud Messaging (FCM) to enable push no
 - Check the workflow logs for any errors
 
 ### google-services.json missing error during build
-- Make sure you've placed the `google-services.json` file in `app/android/app/`
-- The file name must be exactly `google-services.json`
-- Verify the package name in the file matches `com.annaunivnotifications`
+- Make sure you've added the `GOOGLE_SERVICES_JSON` secret to GitHub repository secrets (see Step 5.1)
+- Verify the secret value contains the complete JSON content from your `google-services.json` file
+- Check that the package name in the JSON matches `com.annaunivnotifications`
+- The file is automatically created during the GitHub Actions build process
 
 ## How It Works
 

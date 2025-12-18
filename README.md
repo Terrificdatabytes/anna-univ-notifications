@@ -93,7 +93,7 @@ Before installing the app, you need to set up Firebase Cloud Messaging. See [FCM
 1. Follow the [FCM Setup Guide](docs/FCM_SETUP.md) to:
    - Create a Firebase project
    - Download `google-services.json`
-   - Add FCM Server Key to GitHub secrets
+   - Add `GOOGLE_SERVICES_JSON` and `FCM_SERVER_KEY` to GitHub secrets
 2. Build the APK (see below)
 3. Download and install the APK
 4. Grant notification permissions when prompted
@@ -136,8 +136,9 @@ The APK is built automatically via GitHub Actions with proper version management
 
 1. **Set up Firebase** (first time only):
    - Follow the [FCM Setup Guide](docs/FCM_SETUP.md)
-   - Place `google-services.json` in `app/android/app/`
+   - Add `GOOGLE_SERVICES_JSON` secret with the contents of your `google-services.json` file
    - Add `FCM_SERVER_KEY` to GitHub repository secrets
+   - The `google-services.json` file is automatically created during the build process
 
 2. **Build APK with Version**:
    - Go to **Actions** tab
