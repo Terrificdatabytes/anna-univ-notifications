@@ -101,7 +101,7 @@ The notification scripts support different priority levels:
 You can also receive notifications in your browser:
 1. Visit https://ntfy.sh/anna-univ-notifications
 2. Enable browser notifications when prompted
-3. Keep the tab open to receive notifications
+3. You can receive notifications even when the tab is closed after enabling browser notifications
 
 ## Comparison with Firebase Cloud Messaging
 

@@ -70,6 +70,7 @@ const req = https.request(options, (res) => {
   res.on('end', () => {
     console.log('ntfy.sh API Response:');
     console.log('Status Code:', res.statusCode);
+    console.log('Response:', data);
     console.log('');
 
     if (res.statusCode === 200) {
@@ -80,7 +81,6 @@ const req = https.request(options, (res) => {
       console.log(`   Web: https://ntfy.sh/${NTFY_TOPIC}`);
     } else {
       console.log('❌ Failed to send notification');
-      console.log('Response:', data);
     }
     console.log('================================================');
   });
