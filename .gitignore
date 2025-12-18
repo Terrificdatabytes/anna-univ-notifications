@@ -11,6 +11,12 @@ app/android/app/build/
 app/android/.gradle/
 app/ios/build/
 
+# Firebase
+app/android/app/google-services.json
+
+# Backup files
+data/notifications.json.old
+
 # OS
 .DS_Store
 
