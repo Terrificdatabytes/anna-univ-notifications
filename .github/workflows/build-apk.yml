@@ -82,8 +82,9 @@ jobs:
             print("3. Add a new repository secret named 'GOOGLE_SERVICES_JSON'")
             print("4. Paste the entire contents of your google-services.json file from Firebase Console")
             print("")
-            print("For detailed setup instructions, see: docs/FCM_SETUP.md")
-            print("https://github.com/${{ github.repository }}/blob/main/docs/FCM_SETUP.md")
+            print("Note: google-services.json is required for building the app.")
+            print("For push notification setup (using ntfy.sh), see: docs/NTFY_SETUP.md")
+            print("https://github.com/${{ github.repository }}/blob/main/docs/NTFY_SETUP.md")
             sys.exit(1)
 
           def parse_and_write_json(text: str):
@@ -176,7 +177,7 @@ jobs:
             
             ## 🔔 Push Notifications Setup
             
-            To receive push notifications, follow the [FCM Setup Guide](https://github.com/Terrificdatabytes/anna-univ-notifications/blob/main/docs/FCM_SETUP.md).
+            To receive push notifications, follow the [ntfy.sh Setup Guide](https://github.com/Terrificdatabytes/anna-univ-notifications/blob/main/docs/NTFY_SETUP.md).
             
             ---
             
