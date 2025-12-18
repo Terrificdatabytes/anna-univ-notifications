@@ -1,36 +1,25 @@
 #!/usr/bin/env node
 
 /**
- * Send push notification for new Anna University notifications
+ * Send push notification for new Anna University notifications via ntfy.sh
  * 
- * This script compares the current notifications with previous notifications
- * and sends push notifications for new ones.
+ * ntfy.sh is a free, open-source notification service that requires no account or API keys.
  * 
  * Usage:
  *   node send-new-notification.js <notification_title> [notification_count]
  * 
  * Environment Variables:
- *   FCM_SERVER_KEY - Firebase Cloud Messaging Server Key (required)
+ *   NTFY_TOPIC - The ntfy topic to send notifications to (optional, defaults to 'anna-univ-notifications')
  */
 
 const https = require('https');
 
-// Configuration
-const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY;
+// Configuration - use environment variable or default topic
+const NTFY_TOPIC = process.env.NTFY_TOPIC || 'anna-univ-notifications';
 
 // Get notification details from command line
 const notificationTitle = process.argv[2];
 const notificationCount = parseInt(process.argv[3] || '1', 10);
-
-if (!FCM_SERVER_KEY) {
-  console.error('❌ ERROR: FCM_SERVER_KEY environment variable is not set');
-  console.error('');
-  console.error('Please add your Firebase Cloud Messaging Server Key as a GitHub secret:');
-  console.error('1. Go to Firebase Console > Project Settings > Cloud Messaging');
-  console.error('2. Copy the Server Key');
-  console.error('3. Add it as FCM_SERVER_KEY in GitHub repository secrets');
-  process.exit(1);
-}
 
 if (!notificationTitle) {
   console.error('❌ ERROR: Notification title is required');
@@ -38,46 +27,37 @@ if (!notificationTitle) {
   process.exit(1);
 }
 
-// Prepare notification payload
-const payload = {
-  notification: {
-    title: notificationCount > 1 
-      ? `${notificationCount} New Anna University Notifications`
-      : 'New Anna University Notification',
-    body: notificationTitle,
-    sound: 'default',
-  },
-  data: {
-    type: 'real_notification',
-    timestamp: new Date().toISOString(),
-    count: notificationCount.toString(),
-  },
-  priority: 'high',
-  to: '/topics/all-devices',
-};
-
-// Prepare HTTP request
-const postData = JSON.stringify(payload);
-
-const options = {
-  hostname: 'fcm.googleapis.com',
-  port: 443,
-  path: '/fcm/send',
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `key=${FCM_SERVER_KEY}`,
-    'Content-Length': Buffer.byteLength(postData),
-  },
-};
+// Prepare title based on count
+const title = notificationCount > 1 
+  ? `${notificationCount} New Anna University Notifications`
+  : 'New Anna University Notification';
 
 console.log('');
 console.log('================================================');
-console.log('Sending New Notification Alert via FCM');
+console.log('Sending New Notification Alert via ntfy.sh');
 console.log('================================================');
+console.log(`Topic: ${NTFY_TOPIC}`);
 console.log(`Count: ${notificationCount}`);
 console.log(`Title: "${notificationTitle}"`);
 console.log('');
+
+// Prepare HTTP request for ntfy.sh
+const postData = notificationTitle;
+
+const options = {
+  hostname: 'ntfy.sh',
+  port: 443,
+  path: `/${NTFY_TOPIC}`,
+  method: 'POST',
+  headers: {
+    'Title': title,
+    'Priority': 'high',
+    'Tags': 'loudspeaker,school',
+    'Click': 'https://coe.annauniv.edu',
+    'Content-Type': 'text/plain',
+    'Content-Length': Buffer.byteLength(postData),
+  },
+};
 
 // Send the request
 const req = https.request(options, (res) => {
@@ -88,32 +68,19 @@ const req = https.request(options, (res) => {
   });
 
   res.on('end', () => {
-    console.log('FCM API Response:');
+    console.log('ntfy.sh API Response:');
     console.log('Status Code:', res.statusCode);
-    console.log('Response:', data);
     console.log('');
 
     if (res.statusCode === 200) {
-      const response = JSON.parse(data);
-      if (response.success >= 1) {
-        console.log('✅ Push notification sent successfully!');
-        console.log(`   Success count: ${response.success}`);
-        console.log(`   Failure count: ${response.failure}`);
-        console.log('');
-        console.log('📱 Users should receive notification about new Anna University updates');
-      } else {
-        console.log('⚠️  Notification sent but no devices received it');
-        console.log('   This might mean:');
-        console.log('   - No devices are subscribed to the topic');
-        console.log('   - The app is not installed on any device');
-        console.log('   - FCM token is invalid or expired');
-        if (response.results && response.results[0] && response.results[0].error) {
-          console.log(`   Error: ${response.results[0].error}`);
-        }
-      }
+      console.log('✅ Push notification sent successfully!');
+      console.log('');
+      console.log('📱 Users subscribed to the topic should receive notification');
+      console.log(`   Topic: ${NTFY_TOPIC}`);
+      console.log(`   Web: https://ntfy.sh/${NTFY_TOPIC}`);
     } else {
       console.log('❌ Failed to send notification');
-      console.log('   Check your FCM_SERVER_KEY is correct');
+      console.log('Response:', data);
     }
     console.log('================================================');
   });

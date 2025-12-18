@@ -1,4 +1,8 @@
-# Firebase Cloud Messaging Setup Guide
+# Firebase Cloud Messaging Setup Guide (Legacy)
+
+> ⚠️ **Note**: This project now uses **ntfy.sh** for push notifications instead of Firebase. ntfy.sh is free, requires no setup, and no API keys. See [NTFY_SETUP.md](NTFY_SETUP.md) for the recommended setup.
+>
+> This guide is kept for reference only if you prefer to use Firebase Cloud Messaging.
 
 This guide will help you set up Firebase Cloud Messaging (FCM) to enable push notifications from GitHub Actions to your Android app.
 
