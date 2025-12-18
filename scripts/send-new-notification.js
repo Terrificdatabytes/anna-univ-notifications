@@ -14,8 +14,6 @@
  */
 
 const https = require('https');
-const fs = require('fs');
-const path = require('path');
 
 // Configuration
 const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY;
@@ -114,7 +112,7 @@ const req = https.request(options, (res) => {
         }
       }
     } else {
-      console.log('⚠️  Failed to send notification (non-200 status)');
+      console.log('❌ Failed to send notification');
       console.log('   Check your FCM_SERVER_KEY is correct');
     }
     console.log('================================================');

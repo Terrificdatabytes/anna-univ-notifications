@@ -16,7 +16,6 @@
 const https = require('https');
 
 // Configuration
-const FCM_API_URL = 'https://fcm.googleapis.com/fcm/send';
 const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY;
 
 // Get message from command line arguments
