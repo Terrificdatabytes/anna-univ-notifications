@@ -22,7 +22,8 @@ An automated system that fetches notifications from Anna University COE website 
 ├── .github/
 │   └── workflows/
 │       ├── fetch-notifications.yml  # Auto-fetch notifications every 30 min
-│       └── build-apk.yml            # Manual APK build
+│       ├── build-apk.yml            # Manual APK build
+│       └── test-notifications.yml   # Test notification system
 ├── scraper/
 │   ├── package.json
 │   └── index.js                     # Node.js scraper
@@ -45,6 +46,7 @@ An automated system that fetches notifications from Anna University COE website 
 ### 2. GitHub Actions
 - **fetch-notifications.yml**: Runs every 30 minutes via cron job
 - **build-apk.yml**: Manually triggered to build Android APK
+- **test-notifications.yml**: Manually triggered to test notification scraper with custom test message
 
 ### 3. React Native App
 - Fetches notifications from GitHub raw JSON URL
@@ -95,6 +97,24 @@ The APK is built automatically via GitHub Actions:
 2. Select **Build APK** workflow
 3. Click **Run workflow**
 4. Download the APK from artifacts or releases
+
+## 🧪 Testing Notification System
+
+To test the notification scraper and system:
+
+1. Go to **Actions** tab
+2. Select **Test Notifications** workflow
+3. Click **Run workflow**
+4. (Optional) Enter a custom test message in the input field
+5. View the workflow logs to see:
+   - Custom test message output
+   - Scraped notifications from Anna University COE
+   - Validation results confirming the system is working correctly
+
+The test workflow validates:
+- ✅ Scraper successfully fetches notifications
+- ✅ JSON data structure is valid
+- ✅ All required fields are present (notifications, lastUpdated, count)
 
 ## 📊 Data Format
 
