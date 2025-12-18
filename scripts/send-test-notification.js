@@ -1,81 +1,52 @@
 #!/usr/bin/env node
 
 /**
- * Send test notification via Firebase Cloud Messaging
+ * Send test notification via ntfy.sh
  * 
- * This script sends a push notification to all devices subscribed to the 'all-devices' topic
- * or to a specific device token if provided.
+ * ntfy.sh is a free, open-source notification service that requires no account or API keys.
+ * Users can subscribe to notifications by installing the ntfy app and subscribing to a topic.
  * 
  * Usage:
- *   node send-test-notification.js "Test Message" [deviceToken]
+ *   node send-test-notification.js "Test Message" [topic]
  * 
  * Environment Variables:
- *   FCM_SERVER_KEY - Firebase Cloud Messaging Server Key (required)
+ *   NTFY_TOPIC - The ntfy topic to send notifications to (optional, defaults to 'anna-univ-notifications')
  */
 
 const https = require('https');
 
-// Configuration
-const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY;
+// Configuration - use environment variable or default topic
+const NTFY_TOPIC = process.env.NTFY_TOPIC || 'anna-univ-notifications';
 
 // Get message from command line arguments
 const testMessage = process.argv[2] || 'Testing Anna University notification system';
-const deviceToken = process.argv[3] || null;
+const customTopic = process.argv[3] || NTFY_TOPIC;
 
-if (!FCM_SERVER_KEY) {
-  console.error('❌ ERROR: FCM_SERVER_KEY environment variable is not set');
-  console.error('');
-  console.error('Please add your Firebase Cloud Messaging Server Key as a GitHub secret:');
-  console.error('1. Go to Firebase Console > Project Settings > Cloud Messaging');
-  console.error('2. Copy the Server Key');
-  console.error('3. Add it as FCM_SERVER_KEY in GitHub repository secrets');
-  process.exit(1);
-}
+console.log('');
+console.log('================================================');
+console.log('Sending Test Notification via ntfy.sh');
+console.log('================================================');
+console.log(`Topic: ${customTopic}`);
+console.log(`Message: "${testMessage}"`);
+console.log('');
 
-// Prepare notification payload
-const payload = {
-  notification: {
-    title: 'Anna University Notification Test',
-    body: testMessage,
-    sound: 'default',
-  },
-  data: {
-    test: 'true',
-    timestamp: new Date().toISOString(),
-  },
-  priority: 'high',
-};
-
-// Set target (specific device token or topic for all devices)
-if (deviceToken) {
-  payload.to = deviceToken;
-  console.log('📱 Sending to specific device token');
-} else {
-  payload.to = '/topics/all-devices';
-  console.log('📱 Sending to topic: all-devices');
-}
-
-// Prepare HTTP request
-const postData = JSON.stringify(payload);
+// Prepare HTTP request for ntfy.sh
+const postData = testMessage;
 
 const options = {
-  hostname: 'fcm.googleapis.com',
+  hostname: 'ntfy.sh',
   port: 443,
-  path: '/fcm/send',
+  path: `/${customTopic}`,
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `key=${FCM_SERVER_KEY}`,
+    'Title': 'Anna University Notification Test',
+    'Priority': 'high',
+    'Tags': 'test,bell',
+    'Click': 'https://coe.annauniv.edu',
+    'Content-Type': 'text/plain',
     'Content-Length': Buffer.byteLength(postData),
   },
 };
-
-console.log('');
-console.log('================================================');
-console.log('Sending Test Notification via FCM');
-console.log('================================================');
-console.log(`Message: "${testMessage}"`);
-console.log('');
 
 // Send the request
 const req = https.request(options, (res) => {
@@ -86,33 +57,20 @@ const req = https.request(options, (res) => {
   });
 
   res.on('end', () => {
-    console.log('FCM API Response:');
+    console.log('ntfy.sh API Response:');
     console.log('Status Code:', res.statusCode);
     console.log('Response:', data);
     console.log('');
 
     if (res.statusCode === 200) {
-      const response = JSON.parse(data);
-      if (response.success >= 1) {
-        console.log('✅ Test notification sent successfully!');
-        console.log(`   Success count: ${response.success}`);
-        console.log(`   Failure count: ${response.failure}`);
-        console.log('');
-        console.log('📱 Users subscribed to the topic should receive the notification');
-        console.log('   Make sure the app is installed and has subscribed to "all-devices" topic');
-      } else {
-        console.log('⚠️  Notification sent but no devices received it');
-        console.log('   This might mean:');
-        console.log('   - No devices are subscribed to the topic');
-        console.log('   - The app is not installed on any device');
-        console.log('   - FCM token is invalid or expired');
-        if (response.results && response.results[0] && response.results[0].error) {
-          console.log(`   Error: ${response.results[0].error}`);
-        }
-      }
+      console.log('✅ Test notification sent successfully!');
+      console.log('');
+      console.log('📱 To receive notifications:');
+      console.log(`   1. Install ntfy app from Play Store or F-Droid`);
+      console.log(`   2. Subscribe to topic: ${customTopic}`);
+      console.log(`   3. Or visit: https://ntfy.sh/${customTopic}`);
     } else {
       console.log('❌ Failed to send notification');
-      console.log('   Check your FCM_SERVER_KEY is correct');
     }
     console.log('================================================');
   });

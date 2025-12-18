@@ -68,12 +68,12 @@ jobs:
             echo "ℹ️  No new notifications"
           fi
       
-      - name: Send FCM push notification
+      - name: Send ntfy.sh push notification
         if: steps.detect_new.outputs.new_notifications == 'true'
         env:
-          FCM_SERVER_KEY: ${{ secrets.FCM_SERVER_KEY }}
+          NTFY_TOPIC: anna-univ-notifications
         run: |
-          echo "Sending push notification for new Anna University notifications..."
+          echo "Sending push notification for new Anna University notifications via ntfy.sh..."
           
           COUNT="${{ steps.detect_new.outputs.count }}"
           TITLE="${{ steps.detect_new.outputs.first_title }}"

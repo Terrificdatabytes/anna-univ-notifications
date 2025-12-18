@@ -8,8 +8,13 @@ on:
         required: false
         default: 'Testing Anna University notification system'
         type: string
-      skip_fcm:
-        description: 'Skip sending FCM push notification (only test scraper)'
+      ntfy_topic:
+        description: 'ntfy.sh topic to send notifications to (default: anna-univ-notifications)'
+        required: false
+        default: 'anna-univ-notifications'
+        type: string
+      skip_notification:
+        description: 'Skip sending push notification (only test scraper)'
         required: false
         default: false
         type: boolean
@@ -33,16 +38,17 @@ jobs:
         run: |
           echo "================================================"
           echo "TEST MESSAGE: ${{ inputs.test_message }}"
-          echo "Skip FCM: ${{ inputs.skip_fcm }}"
+          echo "NTFY TOPIC: ${{ inputs.ntfy_topic }}"
+          echo "Skip Notification: ${{ inputs.skip_notification }}"
           echo "================================================"
           echo ""
       
-      - name: Send FCM Push Notification
-        if: ${{ !inputs.skip_fcm }}
+      - name: Send ntfy.sh Push Notification
+        if: ${{ !inputs.skip_notification }}
         env:
-          FCM_SERVER_KEY: ${{ secrets.FCM_SERVER_KEY }}
+          NTFY_TOPIC: ${{ inputs.ntfy_topic }}
         run: |
-          echo "Sending test notification to mobile devices..."
+          echo "Sending test notification to mobile devices via ntfy.sh..."
           node scripts/send-test-notification.js "${{ inputs.test_message }}"
       
       - name: Install scraper dependencies

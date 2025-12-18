@@ -16,7 +16,7 @@ An automated system that fetches notifications from Anna University COE website 
 - ✅ "NEW" badge for new notifications
 - ✅ **Home screen widget** to view latest notifications
 - ✅ Direct link to COE website when tapping notifications
-- ✅ **Firebase Cloud Messaging** integration for reliable push notifications
+- ✅ **ntfy.sh integration** for free push notifications (no Firebase setup required!)
 
 ## 📁 Project Structure
 
@@ -24,22 +24,23 @@ An automated system that fetches notifications from Anna University COE website 
 /
 ├── .github/
 │   └── workflows/
-│       ├── fetch-notifications.yml  # Auto-fetch + send FCM notifications every 15 min
+│       ├── fetch-notifications.yml  # Auto-fetch + send ntfy notifications every 15 min
 │       ├── build-apk.yml            # Manual APK build
-│       └── test-notifications.yml   # Test FCM push notifications manually
+│       └── test-notifications.yml   # Test push notifications manually
 ├── scraper/
 │   ├── package.json
 │   └── index.js                     # Node.js scraper
 ├── app/
-│   ├── android/                     # Android project files with FCM
+│   ├── android/                     # Android project files
 │   ├── App.tsx                      # Main React Native app
-│   ├── NotificationService.ts       # FCM integration service
+│   ├── NotificationService.ts       # Notification service
 │   └── package.json
 ├── scripts/
-│   ├── send-test-notification.js    # Send test FCM notification
-│   └── send-new-notification.js     # Send FCM notification for real updates
+│   ├── send-test-notification.js    # Send test notification via ntfy.sh
+│   └── send-new-notification.js     # Send notification for real updates
 ├── docs/
-│   └── FCM_SETUP.md                 # Firebase setup guide
+│   ├── NTFY_SETUP.md                # ntfy.sh setup guide (recommended)
+│   └── FCM_SETUP.md                 # Firebase setup guide (optional)
 └── data/
     └── notifications.json           # Scraped notifications data
 ```
@@ -56,10 +57,10 @@ An automated system that fetches notifications from Anna University COE website 
 - **fetch-notifications.yml**: Runs every 15 minutes via cron job
   - Scrapes new notifications
   - Detects new notifications by comparing with previous data
-  - Sends push notifications via Firebase Cloud Messaging (FCM)
+  - Sends push notifications via ntfy.sh (free, no API keys required!)
   - Commits updated data to repository
 - **build-apk.yml**: Manually triggered to build Android APK
-- **test-notifications.yml**: Manually triggered to send test push notification to all devices
+- **test-notifications.yml**: Manually triggered to send test push notification
 
 ### 3. React Native App
 - Fetches notifications from GitHub raw JSON URL
@@ -71,36 +72,31 @@ An automated system that fetches notifications from Anna University COE website 
   - Shows update banner when new version is available
   - Provides direct APK download link
   - Displays release notes
-- **Firebase Cloud Messaging Integration**:
-  - Registers device with FCM on first launch
-  - Subscribes to "all-devices" topic for push notifications
-  - Receives real-time notifications when new announcements are posted
-  - Displays notifications even when app is closed or in background
 - **Push Notifications**: 
   - Automatically sent when new notifications are detected on COE website
   - Manual test notifications via GitHub Actions workflow
+  - Uses ntfy.sh - free, open-source, no account required
 - **Home Screen Widget**: Add widget to home screen to see latest notifications at a glance
 - **Direct COE Link**: Tap any push notification or widget to open coe.annauniv.edu
 
 ## 📱 Installation
 
-### For Users
+### For Users - Receive Push Notifications (2 Minutes!)
 
-#### Prerequisites
-Before installing the app, you need to set up Firebase Cloud Messaging. See [FCM Setup Guide](docs/FCM_SETUP.md) for detailed instructions.
+#### Step 1: Install ntfy App
+Download the ntfy app on your Android device:
+- **Google Play Store**: [ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
+- **F-Droid**: [ntfy](https://f-droid.org/packages/io.heckel.ntfy/)
 
-#### Quick Setup
-1. Follow the [FCM Setup Guide](docs/FCM_SETUP.md) to:
-   - Create a Firebase project
-   - Download `google-services.json`
-   - Add `GOOGLE_SERVICES_JSON` and `FCM_SERVER_KEY` to GitHub secrets
-2. Build the APK (see below)
-3. Download and install the APK
-4. Grant notification permissions when prompted
-5. Open the app once to register with FCM
-6. You'll now receive push notifications for new Anna University announcements! 📱
+#### Step 2: Subscribe to Notifications
+1. Open the ntfy app
+2. Tap the **+** button
+3. Enter topic: `anna-univ-notifications`
+4. Tap **Subscribe**
 
-#### Download APK
+That's it! You'll now receive push notifications for new Anna University announcements! 📱
+
+#### Optional: Install the Anna University App
 1. Go to [Releases](../../releases)
 2. Download the latest APK file
 3. Enable "Install from Unknown Sources" in Android settings
@@ -132,15 +128,9 @@ npm run android
 
 ## 🏗️ Building APK
 
-The APK is built automatically via GitHub Actions with proper version management:
+The APK is built via GitHub Actions with proper version management:
 
-1. **Set up Firebase** (first time only):
-   - Follow the [FCM Setup Guide](docs/FCM_SETUP.md)
-   - Add `GOOGLE_SERVICES_JSON` secret with the contents of your `google-services.json` file
-   - Add `FCM_SERVER_KEY` to GitHub repository secrets
-   - The `google-services.json` file is automatically created during the build process
-
-2. **Build APK with Version**:
+1. **Build APK with Version**:
    - Go to **Actions** tab
    - Select **Build APK** workflow
    - Click **Run workflow**
@@ -150,7 +140,7 @@ The APK is built automatically via GitHub Actions with proper version management
    - APK will be created as a GitHub Release with the specified version
    - Download from Releases page: `anna-univ-notifications-v{version}.apk`
 
-3. **Version Management**:
+2. **Version Management**:
    - Version format: `MAJOR.MINOR` or `MAJOR.MINOR.PATCH` (e.g., 1.0, 1.1, 2.0.1)
    - Version code is auto-calculated: `MAJOR*10000 + MINOR*100 + PATCH`
    - Example: v1.2 = version code 10200, v2.0.1 = version code 20001
@@ -179,17 +169,23 @@ For detailed information about the update system and releasing new versions, see
 
 ### Test Manual Push Notifications
 
-To test sending a push notification to your mobile device:
+To test sending a push notification:
 
-1. Make sure you've completed the [FCM Setup Guide](docs/FCM_SETUP.md)
-2. Install the app on your device and open it at least once
-3. Go to **Actions** tab in GitHub
-4. Select **Test Notifications** workflow
-5. Click **Run workflow**
-6. Enter a custom test message (optional)
-7. Make sure "Skip FCM" is **unchecked** (false)
-8. Click **Run workflow**
-9. **Check your phone** - you should receive a push notification! 📱
+1. Install the ntfy app and subscribe to `anna-univ-notifications` topic
+2. Go to **Actions** tab in GitHub
+3. Select **Test Notifications** workflow
+4. Click **Run workflow**
+5. Enter a custom test message (optional)
+6. Click **Run workflow**
+7. **Check your phone** - you should receive a push notification! 📱
+
+### Test via Command Line
+
+You can also test directly from your terminal:
+```bash
+# Send a test notification
+curl -d "Test notification from Anna University" https://ntfy.sh/anna-univ-notifications
+```
 
 ### Test Automatic Notifications
 
@@ -198,7 +194,7 @@ The system automatically sends push notifications for new Anna University announ
 1. The **fetch-notifications** workflow runs every 15 minutes
 2. When new notifications appear on coe.annauniv.edu:
    - They are automatically scraped
-   - Push notifications are sent to all devices via FCM
+   - Push notifications are sent to all subscribers via ntfy.sh
    - Your phone receives the notification in real-time
 3. No manual action required - just wait for new notifications!
 
@@ -208,8 +204,7 @@ The test workflow validates:
 - ✅ Scraper successfully fetches notifications
 - ✅ JSON data structure is valid
 - ✅ All required fields are present (notifications, lastUpdated, count)
-- ✅ FCM push notification is sent successfully
-- ✅ Devices receive the notification
+- ✅ Push notification is sent successfully via ntfy.sh
 
 ## 📊 Data Format
 
@@ -232,7 +227,7 @@ The test workflow validates:
 
 - **Scraper**: Node.js, Axios, Cheerio
 - **App**: React Native 0.73, TypeScript
-- **Push Notifications**: Firebase Cloud Messaging (FCM), @react-native-firebase/messaging, @notifee/react-native
+- **Push Notifications**: [ntfy.sh](https://ntfy.sh) (free, open-source, no setup required)
 - **Widget**: Native Android widget (Kotlin)
 - **Storage**: AsyncStorage
 - **CI/CD**: GitHub Actions

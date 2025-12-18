@@ -148,7 +148,8 @@ npm run android  # Requires Android emulator or device
 - React Native 0.73
 - TypeScript
 - AsyncStorage
-- @notifee/react-native 7.8.2 (for push notifications)
+- @notifee/react-native 7.8.2 (for local push notifications)
+- [ntfy.sh](https://ntfy.sh) (for free push notification delivery)
 - Kotlin (for native Android widget)
 - GitHub Actions
 - Axios 1.12.0
@@ -160,3 +161,4 @@ npm run android  # Requires Android emulator or device
 - APK builds are manual-only (not automatic) as per requirements
 - Android-first design (no iOS)
 - No paid services required
+- Push notifications use ntfy.sh - completely free, no API keys required
