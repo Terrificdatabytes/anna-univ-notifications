@@ -76,19 +76,28 @@ jobs:
           if not content.strip():
             raise SystemExit("GOOGLE_SERVICES_JSON is empty or missing")
 
-          def write_json(text: str):
+          def validate_and_write_json(text: str):
             # pretty-print to ensure valid JSON output
             data = json.loads(text)
             path.write_text(json.dumps(data, indent=2))
 
           try:
-            write_json(content)
-          except json.JSONDecodeError:
+            validate_and_write_json(content)
+          except json.JSONDecodeError as raw_err:
             try:
-              decoded = base64.b64decode(content).decode("utf-8")
-              write_json(decoded)
-            except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError) as e:
-              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: {e}")
+              decoded_bytes = base64.b64decode(content)
+            except binascii.Error as e:
+              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: failed to decode base64 content ({e})")
+
+            try:
+              decoded = decoded_bytes.decode("utf-8")
+            except UnicodeDecodeError as e:
+              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: base64 content is not UTF-8 ({e})")
+
+            try:
+              validate_and_write_json(decoded)
+            except json.JSONDecodeError as e:
+              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: decoded content is not valid JSON ({e})")
           PY
         shell: bash
         env:
