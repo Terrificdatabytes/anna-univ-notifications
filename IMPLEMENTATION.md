@@ -1,7 +1,7 @@
 # Implementation Summary
 
 ## Overview
-Successfully implemented a complete automated notification system for Anna University COE that scrapes notifications from the website and delivers them to an Android app.
+Successfully implemented a complete automated notification system for Anna University COE that scrapes notifications from the website and delivers them to an Android app using Firebase Cloud Messaging (FCM).
 
 ## What Was Built
 
@@ -19,10 +19,16 @@ Successfully implemented a complete automated notification system for Anna Unive
 
 #### `fetch-notifications.yml`
 - **Triggers**: 
-  - Automatic: Every 30 minutes via cron (`*/30 * * * *`)
+  - Automatic: Every 15 minutes via cron (`*/15 * * * *`)
   - Manual: workflow_dispatch
-- **Actions**: Scrapes notifications and commits changes to `data/notifications.json`
+- **Actions**: 
+  - Scrapes notifications and commits changes to `data/notifications.json`
+  - Sends push notifications via Firebase Cloud Messaging when new notifications are detected
 - **Security**: Explicit `contents: write` permission
+
+#### `test-notifications.yml`
+- **Triggers**: Manual only (workflow_dispatch)
+- **Actions**: Sends test push notification via Firebase FCM
 
 #### `build-apk.yml`
 - **Triggers**: Manual only (workflow_dispatch)
@@ -42,9 +48,9 @@ Successfully implemented a complete automated notification system for Anna Unive
   - Offline caching with AsyncStorage
   - Tap to open official links in browser
   - Error handling with HTTP status checks
-  - **Push notifications** using @notifee/react-native
+  - **Push notifications** using Firebase Cloud Messaging (@react-native-firebase/messaging)
   - **Home screen widget** displaying latest notifications
-  - Automatic notification checks on app startup and foreground
+  - Automatic FCM topic subscription on app startup
   - Direct link to coe.annauniv.edu when tapping notifications or widget
 - **UI Components**:
   - Header with Anna University branding
@@ -54,28 +60,42 @@ Successfully implemented a complete automated notification system for Anna Unive
   - Last updated timestamp
   - Native Android widget with teal theme
 
+### 4. Notification Scripts (`scripts/`)
+- **send-test-notification.js**: Sends test notifications via Firebase Admin SDK
+- **send-new-notification.js**: Sends real notifications when new updates are found
+- Uses Firebase Admin SDK for server-side notification delivery
+
 ## Project Structure
 ```
 /
 ├── .github/
 │   └── workflows/
-│       ├── fetch-notifications.yml  # Auto-scrape every 30 min
-│       └── build-apk.yml            # Manual APK build
+│       ├── fetch-notifications.yml  # Auto-scrape every 15 min + FCM notifications
+│       ├── build-apk.yml            # Manual APK build
+│       └── test-notifications.yml   # Test push notifications
 ├── scraper/
-│   ├── package.json                 # Dependencies: axios, cheerio
+│   ├── package.json                 # Dependencies: axios, cheerio, firebase-admin
 │   └── index.js                     # Scraper script
+├── scripts/
+│   ├── package.json                 # Dependencies: firebase-admin
+│   ├── send-test-notification.js    # Test notification script
+│   └── send-new-notification.js     # New notification alert script
 ├── app/
 │   ├── android/                     # Android project files
+│   │   ├── app/google-services.json # Firebase configuration
 │   │   ├── app/src/main/java/com/annaunivnotifications/
 │   │   │   └── NotificationWidgetProvider.kt  # Widget implementation
 │   │   └── app/src/main/res/
 │   │       ├── layout/widget_layout.xml       # Widget UI layout
 │   │       └── xml/widget_info.xml            # Widget metadata
 │   ├── App.tsx                      # Main React Native app
-│   ├── NotificationService.ts       # Push notification service
-│   └── package.json                 # Dependencies: AsyncStorage, Notifee
+│   ├── NotificationService.ts       # Firebase Cloud Messaging service
+│   └── package.json                 # Dependencies: AsyncStorage, Firebase
 ├── data/
 │   └── notifications.json           # Scraped data (sample included)
+├── docs/
+│   ├── FCM_SETUP.md                 # Firebase setup guide
+│   └── NTFY_SETUP.md                # Legacy ntfy.sh guide
 └── README.md                        # Documentation
 ```
 
@@ -106,7 +126,7 @@ Successfully implemented a complete automated notification system for Anna Unive
 - ✅ Fixed axios vulnerabilities (v1.6.2 → v1.12.0)
 - ✅ Added HTTP response status checks
 - ✅ Added explicit GitHub Actions permissions
-- ✅ Passed CodeQL security analysis (0 alerts)
+- ✅ Firebase service account key stored securely in GitHub Secrets
 
 ### Code Review Fixes
 - ✅ Added response.ok check before parsing JSON
@@ -119,7 +139,8 @@ Successfully implemented a complete automated notification system for Anna Unive
 1. Go to GitHub Releases
 2. Download the latest APK
 3. Install on Android device
-4. Open app to view notifications
+4. Grant notification permissions when prompted
+5. Receive push notifications automatically!
 
 ### For Developers
 
@@ -148,17 +169,23 @@ npm run android  # Requires Android emulator or device
 - React Native 0.73
 - TypeScript
 - AsyncStorage
-- @notifee/react-native 7.8.2 (for local push notifications)
-- [ntfy.sh](https://ntfy.sh) (for free push notification delivery)
+- @react-native-firebase/app & @react-native-firebase/messaging (for FCM push notifications)
+- Firebase Admin SDK (for server-side notification sending)
 - Kotlin (for native Android widget)
 - GitHub Actions
 - Axios 1.12.0
 - Cheerio
+
+## Firebase Configuration
+- **Project ID**: anna-univ-notifications
+- **Project Number**: 28313691300
+- **Android Package**: com.annaunivnotifications
+- **FCM Topic**: anna-univ-notifications
 
 ## Notes
 - The scraper cannot run in the sandbox environment due to network restrictions, but will work in GitHub Actions
 - Sample data is provided in `data/notifications.json` for testing
 - APK builds are manual-only (not automatic) as per requirements
 - Android-first design (no iOS)
-- No paid services required
-- Push notifications use ntfy.sh - completely free, no API keys required
+- Firebase Cloud Messaging is free with no limits
+- Repository maintainers need to configure `FIREBASE_SERVICE_ACCOUNT` secret for push notifications

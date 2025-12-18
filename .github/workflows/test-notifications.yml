@@ -8,11 +8,6 @@ on:
         required: false
         default: 'Testing Anna University notification system'
         type: string
-      ntfy_topic:
-        description: 'ntfy.sh topic to send notifications to (default: anna-univ-notifications)'
-        required: false
-        default: 'anna-univ-notifications'
-        type: string
       skip_notification:
         description: 'Skip sending push notification (only test scraper)'
         required: false
@@ -38,17 +33,22 @@ jobs:
         run: |
           echo "================================================"
           echo "TEST MESSAGE: ${{ inputs.test_message }}"
-          echo "NTFY TOPIC: ${{ inputs.ntfy_topic }}"
           echo "Skip Notification: ${{ inputs.skip_notification }}"
           echo "================================================"
           echo ""
       
-      - name: Send ntfy.sh Push Notification
+      - name: Install scripts dependencies
+        if: ${{ !inputs.skip_notification }}
+        run: |
+          cd scripts
+          npm install
+      
+      - name: Send Firebase Push Notification
         if: ${{ !inputs.skip_notification }}
         env:
-          NTFY_TOPIC: ${{ inputs.ntfy_topic }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          echo "Sending test notification to mobile devices via ntfy.sh..."
+          echo "Sending test notification to mobile devices via Firebase FCM..."
           node scripts/send-test-notification.js "${{ inputs.test_message }}"
       
       - name: Install scraper dependencies
@@ -106,4 +106,3 @@ jobs:
           echo "Total notifications found: $(jq '.count' data/notifications.json 2>/dev/null || echo 'N/A')"
           echo "Last updated: $(jq -r '.lastUpdated' data/notifications.json 2>/dev/null || echo 'N/A')"
           echo "================================================"
-

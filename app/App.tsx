@@ -1,8 +1,8 @@
 /**
  * Anna University Notifications App
  *
- * Push notifications are delivered via ntfy.sh - a free, open-source notification service.
- * Users can receive notifications by subscribing to the ntfy topic via the ntfy app.
+ * Push notifications are delivered via Firebase Cloud Messaging (FCM).
+ * Users receive notifications automatically when the app is installed.
  *
  * @format
  */
@@ -24,7 +24,7 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import notifee, {EventType} from '@notifee/react-native';
+import messaging from '@react-native-firebase/messaging';
 import {NotificationService} from './NotificationService';
 import {UpdateService, UpdateInfo} from './UpdateService';
 import UpdateNotification from './UpdateNotification';
@@ -116,23 +116,34 @@ function App(): React.JSX.Element {
   };
 
   const setupNotificationHandlers = () => {
-    // Handle notification press - redirect to COE website
-    notifee.onForegroundEvent(({type}) => {
-      if (type === EventType.PRESS) {
-        Linking.openURL(COE_URL).catch(err =>
-          console.error('Error opening COE website:', err),
-        );
-      }
+    // Handle notification press when app is in foreground
+    const unsubscribeForeground = messaging().onMessage(async remoteMessage => {
+      console.log('Foreground message received:', remoteMessage);
+      // Refresh notifications when a new message arrives
+      fetchNotifications();
     });
 
-    // Handle notification press when app is in background
-    notifee.onBackgroundEvent(async ({type}) => {
-      if (type === EventType.PRESS) {
-        Linking.openURL(COE_URL).catch(err =>
-          console.error('Error opening COE website:', err),
-        );
-      }
+    // Handle notification press when app is opened from background
+    messaging().onNotificationOpenedApp(async remoteMessage => {
+      console.log('Notification opened app from background:', remoteMessage);
+      Linking.openURL(COE_URL).catch(err =>
+        console.error('Error opening COE website:', err),
+      );
     });
+
+    // Handle notification press when app was closed
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log('App opened from quit state via notification:', remoteMessage);
+          Linking.openURL(COE_URL).catch(err =>
+            console.error('Error opening COE website:', err),
+          );
+        }
+      });
+
+    return unsubscribeForeground;
   };
 
   const handleAppStateChange = useCallback(
@@ -149,7 +160,7 @@ function App(): React.JSX.Element {
   // Initialize notification service and set up handlers
   useEffect(() => {
     initializeNotifications();
-    setupNotificationHandlers();
+    const unsubscribe = setupNotificationHandlers();
     checkForAppUpdate(); // Check for app updates on startup
 
     // Listen for app state changes to check for new notifications
@@ -159,6 +170,9 @@ function App(): React.JSX.Element {
     );
 
     return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
       subscription.remove();
     };
   }, [handleAppStateChange]);

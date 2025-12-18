@@ -1,6 +1,8 @@
 # Node.js
 scraper/node_modules/
 scraper/package-lock.json
+scripts/node_modules/
+scripts/package-lock.json
 
 # App
 app/node_modules/
@@ -10,9 +12,6 @@ app/package-lock.json
 app/android/app/build/
 app/android/.gradle/
 app/ios/build/
-
-# Firebase
-app/android/app/google-services.json
 
 # Backup files
 data/notifications.json.old
