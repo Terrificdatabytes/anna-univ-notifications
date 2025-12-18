@@ -67,14 +67,24 @@ jobs:
       - name: Create google-services.json
         run: |
           mkdir -p app/android/app
-          python - <<'PY'
-          import base64, binascii, json, os, pathlib
+          python3 - <<'PY'
+          import base64, binascii, json, os, pathlib, sys
 
           content = os.environ.get("GOOGLE_SERVICES_JSON", "")
           path = pathlib.Path("app/android/app/google-services.json")
 
           if not content.strip():
-            raise SystemExit("GOOGLE_SERVICES_JSON is empty or missing")
+            print("::error::GOOGLE_SERVICES_JSON secret is empty or missing.")
+            print("")
+            print("To fix this error:")
+            print("1. Go to your GitHub repository Settings")
+            print("2. Navigate to Secrets and variables > Actions")
+            print("3. Add a new repository secret named 'GOOGLE_SERVICES_JSON'")
+            print("4. Paste the entire contents of your google-services.json file from Firebase Console")
+            print("")
+            print("For detailed setup instructions, see: docs/FCM_SETUP.md")
+            print("https://github.com/${{ github.repository }}/blob/main/docs/FCM_SETUP.md")
+            sys.exit(1)
 
           def parse_and_write_json(text: str):
             # parse and pretty-print JSON output
@@ -83,21 +93,26 @@ jobs:
 
           try:
             parse_and_write_json(content)
+            print("Successfully created google-services.json")
           except json.JSONDecodeError:
             try:
               decoded_bytes = base64.b64decode(content)
             except binascii.Error as e:
-              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: failed to decode base64 content ({e})")
+              print(f"::error::Invalid GOOGLE_SERVICES_JSON: failed to decode base64 content ({e})")
+              sys.exit(1)
 
             try:
               decoded = decoded_bytes.decode("utf-8")
             except UnicodeDecodeError as e:
-              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: base64 content is not UTF-8 ({e})")
+              print(f"::error::Invalid GOOGLE_SERVICES_JSON: base64 content is not UTF-8 ({e})")
+              sys.exit(1)
 
             try:
               parse_and_write_json(decoded)
+              print("Successfully created google-services.json (decoded from base64)")
             except json.JSONDecodeError as e:
-              raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: content is neither valid JSON nor valid base64-encoded JSON ({e})")
+              print(f"::error::Invalid GOOGLE_SERVICES_JSON: content is neither valid JSON nor valid base64-encoded JSON ({e})")
+              sys.exit(1)
           PY
         shell: bash
         env:
