@@ -68,7 +68,7 @@ jobs:
         run: |
           mkdir -p app/android/app
           python - <<'PY'
-          import base64, json, os, pathlib
+          import base64, binascii, json, os, pathlib
 
           content = os.environ.get("GOOGLE_SERVICES_JSON", "")
           path = pathlib.Path("app/android/app/google-services.json")
@@ -83,11 +83,11 @@ jobs:
 
           try:
             write_json(content)
-          except Exception:
+          except json.JSONDecodeError:
             try:
-              decoded = base64.b64decode(content).decode()
+              decoded = base64.b64decode(content).decode("utf-8")
               write_json(decoded)
-            except Exception as e:
+            except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError) as e:
               raise SystemExit(f"Invalid GOOGLE_SERVICES_JSON: {e}")
           PY
         shell: bash
