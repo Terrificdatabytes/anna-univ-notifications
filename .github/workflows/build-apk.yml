@@ -64,6 +64,10 @@ jobs:
           sed -i "s/CURRENT_VERSION_CODE = .*/CURRENT_VERSION_CODE = $VERSION_CODE;/" app/UpdateService.ts
           sed -i "s/CURRENT_VERSION_NAME = .*/CURRENT_VERSION_NAME = '$VERSION';/" app/UpdateService.ts
       
+      - name: Create google-services.json
+        run: |
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > app/android/app/google-services.json
+      
       - name: Install dependencies
         run: |
           cd app
