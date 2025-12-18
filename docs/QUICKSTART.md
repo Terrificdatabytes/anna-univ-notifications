@@ -1,49 +1,38 @@
 # Quick Start Guide
 
-This guide will help you quickly set up and test the push notification system.
+This guide will help you quickly set up and test the push notification system using ntfy.sh.
 
-## 🚀 Quick Setup (5 minutes)
+## 🚀 Quick Setup (2 minutes!)
 
-### Step 1: Create Firebase Project (2 minutes)
+No Firebase setup needed! ntfy.sh is free and requires no account or API keys.
 
-1. Go to https://console.firebase.google.com/
-2. Click "Add project"
-3. Name it "Anna Univ Notifications" → Continue
-4. Disable Google Analytics → Create project
+### Step 1: Install the ntfy App
 
-### Step 2: Add Android App (1 minute)
+1. Download the ntfy app on your Android device:
+   - **Google Play Store**: [ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
+   - **F-Droid**: [ntfy](https://f-droid.org/packages/io.heckel.ntfy/)
 
-1. Click Android icon (in Project Overview)
-2. Package name: `com.annaunivnotifications`
-3. Click "Register app"
-4. Download `google-services.json`
-5. Save it as: `app/android/app/google-services.json`
+### Step 2: Subscribe to the Topic
 
-### Step 3: Get FCM Server Key (1 minute)
+1. Open the ntfy app
+2. Tap the **+** button to add a subscription
+3. Enter the topic name: `anna-univ-notifications`
+4. Tap **Subscribe**
 
-1. Click gear icon (Project Settings)
-2. Go to "Cloud Messaging" tab
-3. Copy the "Server key" (starts with AAAA...)
-4. Keep this safe - you'll need it next
+That's it! You'll now receive push notifications whenever there's a new Anna University announcement.
 
-### Step 4: Add to GitHub (1 minute)
+## 🏗️ Build & Install the App (Optional)
 
-1. Go to your GitHub repository
-2. Settings → Secrets and variables → Actions
-3. Click "New repository secret"
-4. Name: `FCM_SERVER_KEY`
-5. Value: Paste the server key
-6. Click "Add secret"
-
-## 🏗️ Build & Install
+If you want to build and install the Android app:
 
 ### Option 1: Use GitHub Actions (Recommended)
 
 1. Go to Actions tab → Build APK workflow
 2. Click "Run workflow"
-3. Wait ~10 minutes for build to complete
-4. Download APK from artifacts
-5. Install on your Android device
+3. Enter a version number
+4. Wait ~10 minutes for build to complete
+5. Download APK from GitHub Releases
+6. Install on your Android device
 
 ### Option 2: Build Locally
 
@@ -57,21 +46,20 @@ npx react-native run-android
 
 ### Test 1: Manual Test Notification
 
-1. Open the app on your phone (important!)
-2. Grant notification permission
-3. Go to GitHub → Actions → Test Notifications
-4. Click "Run workflow"
-5. Enter test message: "Hello from GitHub!"
-6. Click "Run workflow"
-7. **Check your phone** - you should get a notification! 📱
+1. Make sure you're subscribed to `anna-univ-notifications` in the ntfy app
+2. Go to GitHub → Actions → Test Notifications
+3. Click "Run workflow"
+4. Enter test message: "Hello from GitHub!"
+5. Click "Run workflow"
+6. **Check your phone** - you should get a notification! 📱
 
 ### Test 2: Automatic Real Notifications
 
 The system automatically checks for new notifications every 15 minutes.
 
-**Trigger a test:**
-1. The workflow runs automatically
-2. When new notifications appear on coe.annauniv.edu
+**How it works:**
+1. GitHub Actions scrapes coe.annauniv.edu every 15 minutes
+2. When new notifications are found, it sends a push notification via ntfy.sh
 3. Your phone gets notified automatically! 🔔
 
 **Check workflow status:**
@@ -81,68 +69,55 @@ The system automatically checks for new notifications every 15 minutes.
 
 ## 🔧 Troubleshooting
 
-### "No devices subscribed"
-- Open the app at least once
-- Grant notification permissions
-- Wait a few seconds for FCM to register
-
-### "Invalid Server Key"
-- Double-check the FCM_SERVER_KEY in GitHub secrets
-- Make sure you copied the full key from Firebase Console
-- Key should start with "AAAA"
+### Not receiving notifications
+- Check that you're subscribed to `anna-univ-notifications` in the ntfy app
+- Enable notifications for the ntfy app in Android settings
+- Disable battery optimization for the ntfy app
 
 ### No notification received
 - Check phone notification settings
-- Disable battery optimization for the app
-- Check FCM logs in workflow output
-
-### Build failed
-- Make sure `google-services.json` is in `app/android/app/`
-- File name must be exactly `google-services.json`
-- Package name in file must be `com.annaunivnotifications`
+- Make sure ntfy app is not restricted by battery optimization
+- Try enabling "WebSocket" in ntfy app settings
 
 ## 📱 Daily Usage
 
 Once set up:
-1. Install the app
-2. Grant permissions
-3. That's it! You'll automatically receive:
+1. Subscribe to the topic in ntfy
+2. That's it! You'll automatically receive:
    - Push notifications when new announcements are posted
    - Real-time updates every 15 minutes
-   - No need to open the app
+   - No need to keep any app open
 
 **Optional:**
+- Install the Anna University Notifications app for a better viewing experience
 - Add home screen widget for quick view
 - Pull to refresh for manual updates
 
 ## 🆘 Need Help?
 
 For detailed setup instructions, see:
-- [FCM Setup Guide](FCM_SETUP.md) - Complete Firebase setup
+- [ntfy.sh Setup Guide](NTFY_SETUP.md) - Complete push notification setup
 - [README](../README.md) - Full documentation
 
 For issues:
 - Check GitHub Actions logs
-- Check Android logcat: `adb logcat *:E`
+- Test with a simple curl command (see NTFY_SETUP.md)
 - Open an issue on GitHub
 
 ## 💡 Tips
 
-1. **First time?** Open the app before testing notifications
+1. **First time?** Just install ntfy app and subscribe to the topic
 2. **Testing?** Use "Test Notifications" workflow for quick tests
-3. **Production?** Just install and forget - it works automatically!
+3. **Production?** Just subscribe and forget - it works automatically!
 4. **Debugging?** Check workflow logs for detailed information
-5. **Battery?** Disable optimization for the app to ensure notifications work
+5. **Battery?** Disable optimization for ntfy app to ensure notifications work
 
 ## ✅ Verify Setup
 
 Run this checklist:
-- [ ] Firebase project created
-- [ ] `google-services.json` downloaded and placed correctly
-- [ ] FCM_SERVER_KEY added to GitHub secrets
-- [ ] APK built successfully
-- [ ] App installed on device
-- [ ] Notification permission granted
+- [ ] ntfy app installed on device
+- [ ] Subscribed to `anna-univ-notifications` topic
+- [ ] Notification permission granted for ntfy app
 - [ ] Test workflow executed
 - [ ] Test notification received ✨
 

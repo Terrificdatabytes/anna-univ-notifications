@@ -7,14 +7,15 @@ Get real-time notifications on your Android device when new announcements are po
 
 **How it works:**
 ```
-COE Website → GitHub Actions (every 15 min) → Firebase Cloud Messaging → Your Phone 📱
+COE Website → GitHub Actions (every 15 min) → ntfy.sh → Your Phone 📱
 ```
 
 **Features:**
 - ✅ Automatic notifications every 15 minutes
 - ✅ Manual test notifications via workflow
 - ✅ Works even when app is closed
-- ✅ One-time Firebase setup
+- ✅ Free, no account or API keys needed
+- ✅ Uses ntfy.sh - open-source notification service
 
 ### 2. 🔄 Automatic App Updates
 Never miss new features! The app automatically checks for updates and provides direct download links.
@@ -44,19 +45,17 @@ Clean, modern interface to view all Anna University notifications
 
 ## 📱 User Journey
 
-### First Time Setup (5 minutes)
-1. Follow [Quick Start Guide](QUICKSTART.md)
-2. Create Firebase project
-3. Build and install APK
-4. Grant notification permissions
-5. **Done!** 🎉
+### First Time Setup (2 minutes!)
+1. Install the [ntfy app](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
+2. Subscribe to topic: `anna-univ-notifications`
+3. **Done!** 🎉
 
 ### Daily Usage (Automatic)
 1. **You do nothing!** ✨
 2. New announcements appear on COE website
-3. You get notified instantly
+3. You get notified instantly via ntfy
 4. Tap notification → Opens COE website
-5. Open app → See all notifications
+5. (Optional) Open app → See all notifications
 
 ### When Update Available
 1. Open app
@@ -98,7 +97,7 @@ Clean, modern interface to view all Anna University notifications
 ### Tech Stack
 ```
 Frontend:  React Native 0.73 + TypeScript
-Push:      Firebase Cloud Messaging
+Push:      ntfy.sh (free, open-source)
 Backend:   GitHub Actions + Node.js
 Scraping:  Axios + Cheerio
 Storage:   AsyncStorage
@@ -114,7 +113,7 @@ Widget:    Native Android (Kotlin)
 
 ### Key Services
 ```
-NotificationService.ts   → FCM management, notifications
+NotificationService.ts   → Local notification management
 UpdateService.ts         → GitHub releases, version check
 App.tsx                  → Main UI, update banner
 ```
@@ -128,7 +127,7 @@ App.tsx                  → Main UI, update banner
 ┌─────────────────────────────────────────────┐
 │ 1. Scrape coe.annauniv.edu                  │
 │ 2. Compare with previous data               │
-│ 3. Found new? → Send FCM notification       │
+│ 3. Found new? → Send ntfy.sh notification   │
 │ 4. Commit updated data to repo              │
 └─────────────────────────────────────────────┘
 ```
@@ -137,7 +136,7 @@ App.tsx                  → Main UI, update banner
 ```
 ┌─────────────────────────────────────────────┐
 │ 1. User enters test message                 │
-│ 2. Send FCM notification to all devices     │
+│ 2. Send ntfy.sh notification to subscribers │
 │ 3. Users receive test notification          │
 └─────────────────────────────────────────────┘
 ```
@@ -158,10 +157,11 @@ App.tsx                  → Main UI, update banner
 
 ## 🔐 Security
 
-### Firebase Cloud Messaging
-- ✅ Server key stored in GitHub Secrets (encrypted)
-- ✅ Topic-based broadcasting (no individual tokens exposed)
+### Push Notifications (ntfy.sh)
+- ✅ No API keys or secrets required
+- ✅ Topic-based pub-sub (public topic)
 - ✅ HTTPS communication only
+- ✅ Privacy-friendly (minimal data collection)
 
 ### Update System
 - ✅ APKs from official GitHub releases only
@@ -188,6 +188,7 @@ App.tsx                  → Main UI, update banner
 - ✅ Automated workflows
 - ✅ Version control
 - ✅ Usage analytics via GitHub
+- ✅ No Firebase setup required
 
 ### For Institution
 - ✅ Better communication
@@ -200,7 +201,7 @@ App.tsx                  → Main UI, update banner
 ## 🚀 Quick Links
 
 - **Setup**: [Quick Start Guide](QUICKSTART.md)
-- **Firebase**: [FCM Setup Guide](FCM_SETUP.md)
+- **ntfy.sh**: [ntfy.sh Setup Guide](NTFY_SETUP.md)
 - **Updates**: [Update System Guide](UPDATE_SYSTEM.md)
 - **Full Docs**: [README](../README.md)
 
@@ -209,7 +210,7 @@ App.tsx                  → Main UI, update banner
 ## 📞 Support
 
 Having issues?
-1. Check the [Troubleshooting sections](FCM_SETUP.md#troubleshooting) in guides
+1. Check the [Troubleshooting sections](NTFY_SETUP.md#troubleshooting) in guides
 2. Review [workflow logs](https://github.com/Terrificdatabytes/anna-univ-notifications/actions)
 3. Open an [issue on GitHub](https://github.com/Terrificdatabytes/anna-univ-notifications/issues)
 

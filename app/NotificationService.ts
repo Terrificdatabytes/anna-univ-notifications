@@ -1,17 +1,21 @@
 /**
  * Notification Service
  * Handles push notifications for new Anna University notifications
+ * 
+ * Push notifications are delivered via ntfy.sh - a free, open-source notification service.
+ * Users can receive notifications by subscribing to the ntfy topic via:
+ * - The ntfy app (Android/iOS)
+ * - Web browser at ntfy.sh
+ * - Or using the ntfy CLI
  */
 
 import notifee, {AndroidImportance} from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import messaging from '@react-native-firebase/messaging';
 
 const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
 const CACHE_KEY = 'anna_univ_notifications';
 const SEEN_IDS_KEY = 'seen_notification_ids';
-const FCM_TOKEN_KEY = 'fcm_token';
 const COE_URL = 'https://coe.annauniv.edu';
 
 interface Notification {
@@ -29,7 +33,7 @@ interface NotificationData {
 
 export class NotificationService {
   /**
-   * Initialize the notification channel and FCM
+   * Initialize the notification channel
    */
   static async initialize() {
     try {
@@ -41,60 +45,8 @@ export class NotificationService {
         vibration: true,
       });
       console.log('Notification channel created');
-      
-      // Initialize FCM
-      await this.initializeFCM();
     } catch (error) {
       console.error('Error creating notification channel:', error);
-    }
-  }
-
-  /**
-   * Initialize Firebase Cloud Messaging
-   */
-  static async initializeFCM() {
-    try {
-      // Request FCM permission
-      const authStatus = await messaging().requestPermission();
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-      if (enabled) {
-        console.log('FCM Authorization status:', authStatus);
-        
-        // Get FCM token
-        const token = await messaging().getToken();
-        console.log('FCM Token:', token);
-        
-        // Save token to AsyncStorage
-        await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
-        
-        // Subscribe to 'all-devices' topic for broadcast notifications
-        await messaging().subscribeToTopic('all-devices');
-        console.log('Subscribed to all-devices topic');
-        
-        // Listen for token refresh
-        messaging().onTokenRefresh(async newToken => {
-          console.log('FCM Token refreshed:', newToken);
-          await AsyncStorage.setItem(FCM_TOKEN_KEY, newToken);
-        });
-      }
-    } catch (error) {
-      console.error('Error initializing FCM:', error);
-    }
-  }
-
-  /**
-   * Get FCM token
-   */
-  static async getFCMToken(): Promise<string | null> {
-    try {
-      const token = await AsyncStorage.getItem(FCM_TOKEN_KEY);
-      return token;
-    } catch (error) {
-      console.error('Error getting FCM token:', error);
-      return null;
     }
   }
 
