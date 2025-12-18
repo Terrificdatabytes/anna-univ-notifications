@@ -2,21 +2,21 @@
  * Notification Service
  * Handles push notifications for new Anna University notifications
  * 
- * Push notifications are delivered via ntfy.sh - a free, open-source notification service.
- * Users can receive notifications by subscribing to the ntfy topic via:
- * - The ntfy app (Android/iOS)
- * - Web browser at ntfy.sh
- * - Or using the ntfy CLI
+ * Push notifications are delivered via Firebase Cloud Messaging (FCM).
+ * Users receive notifications automatically when the app is installed and
+ * notification permissions are granted.
  */
 
-import notifee, {AndroidImportance} from '@notifee/react-native';
+import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Platform, PermissionsAndroid} from 'react-native';
 
 const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
 const CACHE_KEY = 'anna_univ_notifications';
 const SEEN_IDS_KEY = 'seen_notification_ids';
-const COE_URL = 'https://coe.annauniv.edu';
+const FCM_TOKEN_KEY = 'fcm_token';
+const FCM_TOPIC = 'anna-univ-notifications';
 
 interface Notification {
   id: string;
@@ -33,20 +33,36 @@ interface NotificationData {
 
 export class NotificationService {
   /**
-   * Initialize the notification channel
+   * Initialize Firebase messaging and subscribe to topic
    */
   static async initialize() {
     try {
-      await notifee.createChannel({
-        id: 'anna-univ-notifications',
-        name: 'Anna University Notifications',
-        importance: AndroidImportance.HIGH,
-        sound: 'default',
-        vibration: true,
+      // Request permission first
+      const hasPermission = await this.requestPermission();
+      if (!hasPermission) {
+        console.log('Notification permission not granted');
+        return;
+      }
+
+      // Get FCM token
+      const token = await messaging().getToken();
+      console.log('FCM Token:', token);
+
+      // Save token for reference
+      await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
+
+      // Subscribe to the topic for receiving notifications
+      await messaging().subscribeToTopic(FCM_TOPIC);
+      console.log('Subscribed to topic:', FCM_TOPIC);
+
+      // Set up background message handler
+      messaging().setBackgroundMessageHandler(async remoteMessage => {
+        console.log('Background message received:', remoteMessage);
       });
-      console.log('Notification channel created');
+
+      console.log('Firebase messaging initialized');
     } catch (error) {
-      console.error('Error creating notification channel:', error);
+      console.error('Error initializing Firebase messaging:', error);
     }
   }
 
@@ -55,8 +71,25 @@ export class NotificationService {
    */
   static async requestPermission(): Promise<boolean> {
     try {
-      const settings = await notifee.requestPermission();
-      return settings.authorizationStatus >= 1; // AUTHORIZED or PROVISIONAL
+      if (Platform.OS === 'android' && Platform.Version >= 33) {
+        const result = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        );
+        if (result !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Android notification permission denied');
+          return false;
+        }
+      }
+
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        console.log('Notification permission granted');
+      }
+      return enabled;
     } catch (error) {
       console.error('Error requesting notification permission:', error);
       return false;
@@ -90,7 +123,8 @@ export class NotificationService {
   }
 
   /**
-   * Check for new notifications and send push notifications
+   * Check for new notifications and update seen IDs
+   * Note: Push notifications are now handled by FCM server-side
    */
   static async checkForNewNotifications(): Promise<void> {
     try {
@@ -103,21 +137,13 @@ export class NotificationService {
 
       const data: NotificationData = await response.json();
       const seenIds = await this.getSeenIds();
-      const newNotifications: Notification[] = [];
 
-      // Find new notifications
+      // Mark all current notifications as seen
       for (const notification of data.notifications) {
-        if (!seenIds.has(notification.id)) {
-          newNotifications.push(notification);
-          seenIds.add(notification.id);
-        }
+        seenIds.add(notification.id);
       }
 
-      // Send push notifications for new items
-      if (newNotifications.length > 0) {
-        await this.sendNotifications(newNotifications);
-        await this.saveSeenIds(seenIds);
-      }
+      await this.saveSeenIds(seenIds);
 
       // Update cache
       await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
@@ -127,54 +153,15 @@ export class NotificationService {
   }
 
   /**
-   * Send push notifications for new items
+   * Get FCM token for debugging purposes
    */
-  private static async sendNotifications(
-    notifications: Notification[],
-  ): Promise<void> {
+  static async getToken(): Promise<string | null> {
     try {
-      if (notifications.length === 1) {
-        // Single notification
-        const notification = notifications[0];
-        await notifee.displayNotification({
-          title: 'New Anna University Notification',
-          body: notification.title,
-          android: {
-            channelId: 'anna-univ-notifications',
-            importance: AndroidImportance.HIGH,
-            pressAction: {
-              id: 'default',
-              launchActivity: 'default',
-            },
-            smallIcon: 'ic_launcher',
-          },
-          data: {
-            url: COE_URL,
-            notificationId: notification.id,
-          },
-        });
-      } else {
-        // Multiple notifications - show summary
-        await notifee.displayNotification({
-          title: 'Anna University Notifications',
-          body: `${notifications.length} new notifications`,
-          android: {
-            channelId: 'anna-univ-notifications',
-            importance: AndroidImportance.HIGH,
-            pressAction: {
-              id: 'default',
-              launchActivity: 'default',
-            },
-            smallIcon: 'ic_launcher',
-          },
-          data: {
-            url: COE_URL,
-            count: notifications.length.toString(),
-          },
-        });
-      }
+      const token = await AsyncStorage.getItem(FCM_TOKEN_KEY);
+      return token;
     } catch (error) {
-      console.error('Error sending notifications:', error);
+      console.error('Error getting FCM token:', error);
+      return null;
     }
   }
 
@@ -187,6 +174,18 @@ export class NotificationService {
       console.log('Cleared seen notification IDs');
     } catch (error) {
       console.error('Error clearing seen IDs:', error);
+    }
+  }
+
+  /**
+   * Unsubscribe from topic (if needed)
+   */
+  static async unsubscribeFromTopic(): Promise<void> {
+    try {
+      await messaging().unsubscribeFromTopic(FCM_TOPIC);
+      console.log('Unsubscribed from topic:', FCM_TOPIC);
+    } catch (error) {
+      console.error('Error unsubscribing from topic:', error);
     }
   }
 }

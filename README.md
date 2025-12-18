@@ -16,7 +16,7 @@ An automated system that fetches notifications from Anna University COE website 
 - ✅ "NEW" badge for new notifications
 - ✅ **Home screen widget** to view latest notifications
 - ✅ Direct link to COE website when tapping notifications
-- ✅ **ntfy.sh integration** for free push notifications (no Firebase setup required!)
+- ✅ **Firebase Cloud Messaging (FCM)** for reliable push notifications
 
 ## 📁 Project Structure
 
@@ -24,7 +24,7 @@ An automated system that fetches notifications from Anna University COE website 
 /
 ├── .github/
 │   └── workflows/
-│       ├── fetch-notifications.yml  # Auto-fetch + send ntfy notifications every 15 min
+│       ├── fetch-notifications.yml  # Auto-fetch + send FCM notifications every 15 min
 │       ├── build-apk.yml            # Manual APK build
 │       └── test-notifications.yml   # Test push notifications manually
 ├── scraper/
@@ -33,14 +33,14 @@ An automated system that fetches notifications from Anna University COE website 
 ├── app/
 │   ├── android/                     # Android project files
 │   ├── App.tsx                      # Main React Native app
-│   ├── NotificationService.ts       # Notification service
+│   ├── NotificationService.ts       # Firebase notification service
 │   └── package.json
 ├── scripts/
-│   ├── send-test-notification.js    # Send test notification via ntfy.sh
+│   ├── send-test-notification.js    # Send test notification via FCM
 │   └── send-new-notification.js     # Send notification for real updates
 ├── docs/
-│   ├── NTFY_SETUP.md                # ntfy.sh setup guide (recommended)
-│   └── FCM_SETUP.md                 # Firebase setup guide (optional)
+│   ├── FCM_SETUP.md                 # Firebase setup guide
+│   └── NTFY_SETUP.md                # ntfy.sh setup guide (legacy)
 └── data/
     └── notifications.json           # Scraped notifications data
 ```
@@ -57,7 +57,7 @@ An automated system that fetches notifications from Anna University COE website 
 - **fetch-notifications.yml**: Runs every 15 minutes via cron job
   - Scrapes new notifications
   - Detects new notifications by comparing with previous data
-  - Sends push notifications via ntfy.sh (free, no API keys required!)
+  - Sends push notifications via Firebase Cloud Messaging (FCM)
   - Commits updated data to repository
 - **build-apk.yml**: Manually triggered to build Android APK
 - **test-notifications.yml**: Manually triggered to send test push notification
@@ -75,38 +75,26 @@ An automated system that fetches notifications from Anna University COE website 
 - **Push Notifications**: 
   - Automatically sent when new notifications are detected on COE website
   - Manual test notifications via GitHub Actions workflow
-  - Uses ntfy.sh - free, open-source, no account required
+  - Uses Firebase Cloud Messaging for reliable delivery
 - **Home Screen Widget**: Add widget to home screen to see latest notifications at a glance
 - **Direct COE Link**: Tap any push notification or widget to open coe.annauniv.edu
 
 ## 📱 Installation
 
-### For Users - Receive Push Notifications (2 Minutes!)
+### For Users - Receive Push Notifications
 
-#### Step 1: Install ntfy App
-Download the ntfy app on your Android device:
-- **Google Play Store**: [ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy)
-- **F-Droid**: [ntfy](https://f-droid.org/packages/io.heckel.ntfy/)
-
-#### Step 2: Subscribe to Notifications
-1. Open the ntfy app
-2. Tap the **+** button
-3. Enter topic: `anna-univ-notifications`
-4. Tap **Subscribe**
-
-That's it! You'll now receive push notifications for new Anna University announcements! 📱
-
-#### Optional: Install the Anna University App
 1. Go to [Releases](../../releases)
 2. Download the latest APK file
 3. Enable "Install from Unknown Sources" in Android settings
 4. Install the APK
 5. Grant notification permissions when prompted
-6. Add the widget to your home screen (optional):
-   - Long press on home screen
-   - Select "Widgets"
-   - Find "AU Notifications" widget
-   - Drag to home screen
+6. That's it! You'll receive push notifications automatically! 📱
+
+#### Optional: Add Home Screen Widget
+1. Long press on home screen
+2. Select "Widgets"
+3. Find "AU Notifications" widget
+4. Drag to home screen
 
 ### For Developers
 
@@ -171,21 +159,13 @@ For detailed information about the update system and releasing new versions, see
 
 To test sending a push notification:
 
-1. Install the ntfy app and subscribe to `anna-univ-notifications` topic
+1. Make sure the app is installed on your device
 2. Go to **Actions** tab in GitHub
 3. Select **Test Notifications** workflow
 4. Click **Run workflow**
 5. Enter a custom test message (optional)
 6. Click **Run workflow**
 7. **Check your phone** - you should receive a push notification! 📱
-
-### Test via Command Line
-
-You can also test directly from your terminal:
-```bash
-# Send a test notification
-curl -d "Test notification from Anna University" https://ntfy.sh/anna-univ-notifications
-```
 
 ### Test Automatic Notifications
 
@@ -194,7 +174,7 @@ The system automatically sends push notifications for new Anna University announ
 1. The **fetch-notifications** workflow runs every 15 minutes
 2. When new notifications appear on coe.annauniv.edu:
    - They are automatically scraped
-   - Push notifications are sent to all subscribers via ntfy.sh
+   - Push notifications are sent to all app users via Firebase FCM
    - Your phone receives the notification in real-time
 3. No manual action required - just wait for new notifications!
 
@@ -204,7 +184,7 @@ The test workflow validates:
 - ✅ Scraper successfully fetches notifications
 - ✅ JSON data structure is valid
 - ✅ All required fields are present (notifications, lastUpdated, count)
-- ✅ Push notification is sent successfully via ntfy.sh
+- ✅ Push notification is sent successfully via Firebase FCM
 
 ## 📊 Data Format
 
@@ -227,10 +207,21 @@ The test workflow validates:
 
 - **Scraper**: Node.js, Axios, Cheerio
 - **App**: React Native 0.73, TypeScript
-- **Push Notifications**: [ntfy.sh](https://ntfy.sh) (free, open-source, no setup required)
+- **Push Notifications**: [Firebase Cloud Messaging (FCM)](https://firebase.google.com/docs/cloud-messaging)
 - **Widget**: Native Android widget (Kotlin)
 - **Storage**: AsyncStorage
 - **CI/CD**: GitHub Actions
+
+## 🔐 Setup for Repository Maintainers
+
+To enable push notifications, you need to configure Firebase:
+
+1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+2. Add an Android app with package name `com.annaunivnotifications`
+3. Download `google-services.json` and place it in `app/android/app/`
+4. Generate a service account key and add it as `FIREBASE_SERVICE_ACCOUNT` secret in GitHub
+
+See [FCM_SETUP.md](docs/FCM_SETUP.md) for detailed instructions.
 
 ## 📝 License
 

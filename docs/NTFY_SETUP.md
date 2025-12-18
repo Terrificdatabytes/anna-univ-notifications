@@ -1,6 +1,10 @@
-# ntfy.sh Push Notification Setup Guide
+# ntfy.sh Push Notification Setup Guide (Legacy)
 
-This project uses [ntfy.sh](https://ntfy.sh) - a free, open-source notification service that requires **no account, no API keys, and no setup**!
+> ⚠️ **Note**: This project now uses **Firebase Cloud Messaging (FCM)** for push notifications. See [FCM_SETUP.md](FCM_SETUP.md) for the current setup.
+>
+> This guide is kept for reference only.
+
+This project previously used [ntfy.sh](https://ntfy.sh) - a free, open-source notification service.
 
 ## What is ntfy.sh?
 

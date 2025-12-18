@@ -122,7 +122,10 @@ jobs:
             
             ## 🔔 Push Notifications Setup
             
-            To receive push notifications, follow the [ntfy.sh Setup Guide](https://github.com/Terrificdatabytes/anna-univ-notifications/blob/main/docs/NTFY_SETUP.md).
+            Push notifications are sent automatically via Firebase Cloud Messaging (FCM).
+            Simply install the app and grant notification permissions when prompted.
+            
+            For more details, see the [Firebase Setup Guide](https://github.com/Terrificdatabytes/anna-univ-notifications/blob/main/docs/FCM_SETUP.md).
             
             ---
             

@@ -1,0 +1,8 @@
+{
+  "name": "anna-univ-notification-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for sending push notifications via Firebase Cloud Messaging",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

@@ -31,9 +31,14 @@ jobs:
             echo "No previous notifications found, created empty file"
           fi
       
-      - name: Install dependencies
+      - name: Install scraper dependencies
         run: |
           cd scraper
+          npm install
+      
+      - name: Install scripts dependencies
+        run: |
+          cd scripts
           npm install
       
       - name: Run scraper
@@ -68,12 +73,12 @@ jobs:
             echo "ℹ️  No new notifications"
           fi
       
-      - name: Send ntfy.sh push notification
+      - name: Send Firebase push notification
         if: steps.detect_new.outputs.new_notifications == 'true'
         env:
-          NTFY_TOPIC: anna-univ-notifications
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          echo "Sending push notification for new Anna University notifications via ntfy.sh..."
+          echo "Sending push notification for new Anna University notifications via Firebase FCM..."
           
           COUNT="${{ steps.detect_new.outputs.count }}"
           TITLE="${{ steps.detect_new.outputs.first_title }}"
