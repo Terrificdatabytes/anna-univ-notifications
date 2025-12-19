@@ -8,6 +8,10 @@ scripts/package-lock.json
 app/node_modules/
 app/package-lock.json
 
+# Firebase config (contains API keys - use google-services.json.example as template)
+app/android/app/google-services.json
+app/ios/GoogleService-Info.plist
+
 # Build artifacts
 app/android/app/build/
 app/android/.gradle/

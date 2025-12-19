@@ -31,14 +31,25 @@ The Firebase project is already configured:
 
 ### Step 2: Google Services Configuration
 
-The `google-services.json` file is already included in the repository at:
-```
-app/android/app/google-services.json
+The `google-services.json` file is **NOT** included in the repository for security reasons. An example template file (`google-services.json.example`) is provided to help you get started.
+
+To set up your own Firebase configuration:
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project or select an existing one
+3. Add an Android app with package name: `com.annaunivnotifications`
+4. Download the `google-services.json` file
+5. Place it at: `app/android/app/google-services.json`
+
+Alternatively, copy the example file and fill in your own values:
+```bash
+cp app/android/app/google-services.json.example app/android/app/google-services.json
+# Then edit the file with your Firebase project credentials
 ```
 
 This file contains:
 - Project configuration
-- API keys
+- API keys (should be kept private)
 - App-specific settings
 
 ### Step 3: Generate Service Account Key
@@ -106,12 +117,14 @@ When new notifications are detected on coe.annauniv.edu:
 
 ### google-services.json
 
-Location: `app/android/app/google-services.json`
+Location: `app/android/app/google-services.json` (NOT committed - use `.example` as template)
 
 Contains:
 - `project_info`: Firebase project configuration
 - `client`: Android app configuration
 - `api_key`: API key for Firebase services
+
+**Important**: This file should NOT be committed to the repository. Use `google-services.json.example` as a template and add your own Firebase credentials.
 
 ### Notification Scripts
 
@@ -143,13 +156,14 @@ Location: `scripts/`
 
 ### Build fails with Firebase errors
 
-1. Ensure `google-services.json` is present in `app/android/app/`
+1. Ensure `google-services.json` is present in `app/android/app/` (copy from `google-services.json.example` and fill in your credentials)
 2. Check that the package name matches: `com.annaunivnotifications`
 3. Verify Firebase dependencies in `build.gradle` files
 
 ## Security Notes
 
-- The `google-services.json` file contains public configuration and is safe to commit
+- The `google-services.json` file contains API keys and should **NOT be committed** to the repository
+- Use `google-services.json.example` as a template for your own configuration
 - **Never commit** the service account key file
 - Store the service account key only in GitHub Secrets
 - The service account key in GitHub Secrets is encrypted
