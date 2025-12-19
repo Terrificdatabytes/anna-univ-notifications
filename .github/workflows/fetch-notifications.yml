@@ -49,23 +49,31 @@ jobs:
       - name: Detect new notifications
         id: detect_new
         run: |
-          # Check if there are new notifications by comparing counts
-          OLD_COUNT=$(jq '.count' data/notifications.json.old 2>/dev/null || echo 0)
-          NEW_COUNT=$(jq '.count' data/notifications.json 2>/dev/null || echo 0)
+          # Extract notification IDs from old and new data to find truly new notifications
+          # This approach works even if the website deletes old notifications
+          OLD_IDS=$(jq -r '.notifications[].id' data/notifications.json.old 2>/dev/null | sort -u || echo "")
+          NEW_IDS=$(jq -r '.notifications[].id' data/notifications.json 2>/dev/null | sort -u || echo "")
           
-          echo "Previous count: $OLD_COUNT"
-          echo "New count: $NEW_COUNT"
+          # Find IDs that are in new data but not in old data
+          NEW_NOTIFICATION_IDS=$(comm -23 <(echo "$NEW_IDS") <(echo "$OLD_IDS"))
           
-          if [ "$NEW_COUNT" -gt "$OLD_COUNT" ]; then
-            NEW_NOTIF_COUNT=$((NEW_COUNT - OLD_COUNT))
-            echo "new_notifications=true" >> $GITHUB_OUTPUT
-            echo "count=$NEW_NOTIF_COUNT" >> $GITHUB_OUTPUT
+          # Count new notifications (handle empty case where wc -l would return 1 for empty newline)
+          if [ -n "$NEW_NOTIFICATION_IDS" ]; then
+            NEW_NOTIF_COUNT=$(echo "$NEW_NOTIFICATION_IDS" | grep -c .)
+            
+            # Get the first new notification ID
+            FIRST_NEW_ID=$(echo "$NEW_NOTIFICATION_IDS" | head -n 1)
             
             # Get the title of the first new notification
-            FIRST_NEW_TITLE=$(jq -r '.notifications[0].title' data/notifications.json)
+            FIRST_NEW_TITLE=$(jq -r --arg id "$FIRST_NEW_ID" '.notifications[] | select(.id == $id) | .title' data/notifications.json | head -n 1)
+            
+            echo "new_notifications=true" >> $GITHUB_OUTPUT
+            echo "count=$NEW_NOTIF_COUNT" >> $GITHUB_OUTPUT
             echo "first_title=$FIRST_NEW_TITLE" >> $GITHUB_OUTPUT
             
             echo "✅ Found $NEW_NOTIF_COUNT new notification(s)"
+            echo "New notification IDs:"
+            echo "$NEW_NOTIFICATION_IDS"
           else
             echo "new_notifications=false" >> $GITHUB_OUTPUT
             echo "count=0" >> $GITHUB_OUTPUT
