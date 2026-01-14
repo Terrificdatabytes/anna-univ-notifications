@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "90f76663",
+      "title": "Distance Education: -  June / July 2025  Online Examinations - Online Mode M.B.A. (Business Analytics and General Management) Results Published.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "6ec3f5d8",
       "title": "Kind Attention to the Institution: - Review Results of April/May 2025 Examinations is Published.",
       "link": null,
@@ -103,6 +109,6 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-01-14T10:59:53.825Z",
-  "count": 17
+  "lastUpdated": "2026-01-14T11:23:25.617Z",
+  "count": 18
 }
