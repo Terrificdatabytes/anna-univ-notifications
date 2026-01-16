@@ -1,7 +1,8 @@
 # Anna University Notifications
 
 An automated system that fetches notifications from Anna University COE website and delivers them to an Android app.
-DOWNLOAD HERE 
+
+##DOWNLOAD HERE 
 https://github.com/Terrificdatabytes/anna-univ-notifications/releases/download/v1.52/anna-univ-notifications-v1.52.apk
 ## 🚀 Features
 
