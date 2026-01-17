@@ -2,8 +2,16 @@
 
 An automated system that fetches notifications from Anna University COE website and delivers them to an Android app.
 
-##DOWNLOAD HERE 
-https://github.com/Terrificdatabytes/anna-univ-notifications/releases/download/v1.52/anna-univ-notifications-v1.52.apk
+## 📥 Download
+
+[**Download Latest APK (v1.52)**](https://github.com/Terrificdatabytes/anna-univ-notifications/releases/download/v1.52/anna-univ-notifications-v1.52.apk)
+
+## 📸 Screenshots
+
+| App Interface | Home Screen Widget |
+|:-------------:|:------------------:|
+| <img src="screenshot-1.jpg" alt="App Screenshot" width="300"/> | <img src="widget.jpg" alt="Home Screen Widget" width="300"/> |
+
 ## 🚀 Features
 
 - ✅ Automatic notification scraping every 15 minutes
