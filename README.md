@@ -8,9 +8,9 @@ An automated system that fetches notifications from Anna University COE website 
 
 ## 📸 Screenshots
 
-| App Interface | Home Screen Widget |
-|:-------------:|:------------------:|
-| <img src="screenshot-1.jpg" alt="App Screenshot" width="300"/> | <img src="widget.jpg" alt="Home Screen Widget" width="300"/> |
+| App Interface | Home Screen Widget |Push notification|
+|:-------------:|:------------------:|:---------------:|
+| <img src="screenshot-1.jpg" alt="App Screenshot" width="300"/> | <img src="widget.jpg" alt="Home Screen Widget" width="300"/> |<img src="push-notification.jpg" alt="push notification" width="300"/> 
 
 ## 🚀 Features
 
