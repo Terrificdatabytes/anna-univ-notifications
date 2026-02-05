@@ -4,36 +4,47 @@ on:
   schedule:
     # Run at specific times every day (all times converted from IST to UTC)
     # IST is UTC+5:30
+    # 
+    # OPTIMIZATION: Using uncommon minute offsets (3, 8, 13, 23, 28, 33, 38, 43, 53)
+    # instead of common ones (0, 5, 10, 15, 20, 30) to avoid GitHub Actions cron congestion
+    # and improve execution accuracy during busy periods.
+    # Times adjusted by +3 minutes to use less congested slots while staying close to original schedule.
     
-    # 5:30 PM IST = 12:00 UTC
-    - cron: '0 12 * * *'
-    # 5:35 PM IST = 12:05 UTC
-    - cron: '5 12 * * *'
-    # 5:40 PM IST = 12:10 UTC
-    - cron: '10 12 * * *'
-    # 5:50 PM IST = 12:20 UTC
-    - cron: '20 12 * * *'
-    # 5:55 PM IST = 12:25 UTC
-    - cron: '25 12 * * *'
-    # 6:00 PM IST = 12:30 UTC
-    - cron: '30 12 * * *'
-    # 6:05 PM IST = 12:35 UTC
-    - cron: '35 12 * * *'
-    # 6:10 PM IST = 12:40 UTC
-    - cron: '40 12 * * *'
-    # 6:20 PM IST = 12:50 UTC
-    - cron: '50 12 * * *'
-    # 6:30 PM IST = 13:00 UTC
-    - cron: '0 13 * * *'
-    # 6:40 PM IST = 13:10 UTC
-    - cron: '10 13 * * *'
-    # 6:50 PM IST = 13:20 UTC
-    - cron: '20 13 * * *'
+    # ~5:33 PM IST = 12:03 UTC (originally 5:30 PM)
+    - cron: '3 12 * * *'
+    # ~5:38 PM IST = 12:08 UTC (originally 5:35 PM)
+    - cron: '8 12 * * *'
+    # ~5:43 PM IST = 12:13 UTC (originally 5:40 PM)
+    - cron: '13 12 * * *'
+    # ~5:53 PM IST = 12:23 UTC (originally 5:50 PM)
+    - cron: '23 12 * * *'
+    # ~5:58 PM IST = 12:28 UTC (originally 5:55 PM)
+    - cron: '28 12 * * *'
+    # ~6:03 PM IST = 12:33 UTC (originally 6:00 PM)
+    - cron: '33 12 * * *'
+    # ~6:08 PM IST = 12:38 UTC (originally 6:05 PM)
+    - cron: '38 12 * * *'
+    # ~6:13 PM IST = 12:43 UTC (originally 6:10 PM)
+    - cron: '43 12 * * *'
+    # ~6:23 PM IST = 12:53 UTC (originally 6:20 PM)
+    - cron: '53 12 * * *'
+    # ~6:33 PM IST = 13:03 UTC (originally 6:30 PM)
+    - cron: '3 13 * * *'
+    # ~6:43 PM IST = 13:13 UTC (originally 6:40 PM)
+    - cron: '13 13 * * *'
+    # ~6:53 PM IST = 13:23 UTC (originally 6:50 PM)
+    - cron: '23 13 * * *'
   workflow_dispatch:
+
+# Prevent concurrent runs to avoid conflicts when committing notification data
+concurrency:
+  group: fetch-notifications-evening
+  cancel-in-progress: false
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     
