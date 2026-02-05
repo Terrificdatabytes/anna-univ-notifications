@@ -1,0 +1,146 @@
+name: Fetch Notifications (Evening Schedule)
+
+on:
+  schedule:
+    # Run at specific times every day (all times converted from IST to UTC)
+    # IST is UTC+5:30
+    # 
+    # OPTIMIZATION: Using uncommon minute offsets (3, 8, 13, 23, 28, 33, 38, 43, 53)
+    # instead of common ones (0, 5, 10, 15, 20, 30) to avoid GitHub Actions cron congestion
+    # and improve execution accuracy during busy periods.
+    # Times adjusted by +3 minutes to use less congested slots while staying close to original schedule.
+    
+    # ~5:33 PM IST = 12:03 UTC (originally 5:30 PM)
+    - cron: '3 12 * * *'
+    # ~5:38 PM IST = 12:08 UTC (originally 5:35 PM)
+    - cron: '8 12 * * *'
+    # ~5:43 PM IST = 12:13 UTC (originally 5:40 PM)
+    - cron: '13 12 * * *'
+    # ~5:53 PM IST = 12:23 UTC (originally 5:50 PM)
+    - cron: '23 12 * * *'
+    # ~5:58 PM IST = 12:28 UTC (originally 5:55 PM)
+    - cron: '28 12 * * *'
+    # ~6:03 PM IST = 12:33 UTC (originally 6:00 PM)
+    - cron: '33 12 * * *'
+    # ~6:08 PM IST = 12:38 UTC (originally 6:05 PM)
+    - cron: '38 12 * * *'
+    # ~6:13 PM IST = 12:43 UTC (originally 6:10 PM)
+    - cron: '43 12 * * *'
+    # ~6:23 PM IST = 12:53 UTC (originally 6:20 PM)
+    - cron: '53 12 * * *'
+    # ~6:33 PM IST = 13:03 UTC (originally 6:30 PM)
+    - cron: '3 13 * * *'
+    # ~6:43 PM IST = 13:13 UTC (originally 6:40 PM)
+    - cron: '13 13 * * *'
+    # ~6:53 PM IST = 13:23 UTC (originally 6:50 PM)
+    - cron: '23 13 * * *'
+  workflow_dispatch:
+
+# Prevent concurrent runs to avoid conflicts when committing notification data
+concurrency:
+  group: fetch-notifications-evening
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Save previous notifications
+        run: |
+          if [ -f data/notifications.json ]; then
+            cp data/notifications.json data/notifications.json.old
+            echo "Previous notifications saved"
+          else
+            echo '{"notifications":[],"lastUpdated":"","count":0}' > data/notifications.json.old
+            echo "No previous notifications found, created empty file"
+          fi
+      
+      - name: Install scraper dependencies
+        run: |
+          cd scraper
+          npm install
+      
+      - name: Install scripts dependencies
+        run: |
+          cd scripts
+          npm install
+      
+      - name: Run scraper
+        run: |
+          cd scraper
+          npm start
+      
+      - name: Detect new notifications
+        id: detect_new
+        run: |
+          # Extract notification IDs from old and new data to find truly new notifications
+          # This approach works even if the website deletes old notifications
+          OLD_IDS=$(jq -r '.notifications[].id' data/notifications.json.old 2>/dev/null | sort -u || echo "")
+          NEW_IDS=$(jq -r '.notifications[].id' data/notifications.json 2>/dev/null | sort -u || echo "")
+          
+          # Find IDs that are in new data but not in old data
+          NEW_NOTIFICATION_IDS=$(comm -23 <(echo "$NEW_IDS") <(echo "$OLD_IDS"))
+          
+          # Count new notifications (handle empty case where wc -l would return 1 for empty newline)
+          if [ -n "$NEW_NOTIFICATION_IDS" ]; then
+            NEW_NOTIF_COUNT=$(echo "$NEW_NOTIFICATION_IDS" | grep -c .)
+            
+            # Get the first new notification ID
+            FIRST_NEW_ID=$(echo "$NEW_NOTIFICATION_IDS" | head -n 1)
+            
+            # Get the title of the first new notification
+            FIRST_NEW_TITLE=$(jq -r --arg id "$FIRST_NEW_ID" '.notifications[] | select(.id == $id) | .title' data/notifications.json | head -n 1)
+            
+            echo "new_notifications=true" >> $GITHUB_OUTPUT
+            echo "count=$NEW_NOTIF_COUNT" >> $GITHUB_OUTPUT
+            echo "first_title=$FIRST_NEW_TITLE" >> $GITHUB_OUTPUT
+            
+            echo "✅ Found $NEW_NOTIF_COUNT new notification(s)"
+            echo "New notification IDs:"
+            echo "$NEW_NOTIFICATION_IDS"
+          else
+            echo "new_notifications=false" >> $GITHUB_OUTPUT
+            echo "count=0" >> $GITHUB_OUTPUT
+            echo "first_title=" >> $GITHUB_OUTPUT
+            echo "ℹ️  No new notifications"
+          fi
+      
+      - name: Send Firebase push notification
+        if: steps.detect_new.outputs.new_notifications == 'true'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "Sending push notification for new Anna University notifications via Firebase FCM..."
+          
+          COUNT="${{ steps.detect_new.outputs.count }}"
+          TITLE="${{ steps.detect_new.outputs.first_title }}"
+          
+          if [ "$COUNT" -eq "1" ]; then
+            node scripts/send-new-notification.js "$TITLE" 1
+          else
+            node scripts/send-new-notification.js "$TITLE" "$COUNT"
+          fi
+      
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/notifications.json
+          
+          # Remove old backup file
+          rm -f data/notifications.json.old
+          
+          git diff --staged --quiet || git commit -m "Update notifications - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          git push
