@@ -1,5 +1,12 @@
 {
-  "notifications": [],
-  "lastUpdated": "2026-02-11T10:58:56.826Z",
-  "count": 0
+  "notifications": [
+    {
+      "id": "d6dd7cd0",
+      "title": "Kind Attention to the Institutions:- Academic and Assessment Schedule – April/May 2026 Examinations (Even Semester)-Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/2026_am/Assessment_Schedule_Even_Semesters_am26.pdf",
+      "isNew": true
+    }
+  ],
+  "lastUpdated": "2026-02-11T11:43:49.561Z",
+  "count": 1
 }
