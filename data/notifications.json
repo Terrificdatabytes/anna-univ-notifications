@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "cdaf8692",
+      "title": "Kind Attention to the Institutions:The results of Nov./Dec. 2025 Examinations (UG/PG/Ph.D.) (Except candidates admitted in the year 2025 – First Year & Lateral Entry) have been published.Students who wish to apply for photocopy of their answer scripts should submit their request through their respective Colleges on or before 23.03.2026 (Monday), 1:00 PM.Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/2025_nd/nd25_pc_procedure.pdf",
+      "isNew": true
+    },
+    {
       "id": "eb4e5e13",
       "title": "Distance Education: -  Aug./Sep. 2025 Examinations and Special Examinations Results Published. Candidates can apply for Photocopy of Answer Scripts from 10-03-2026 through study centre only. Last Date for applying photocopy of answer script is 15-03-2026. Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/distance/aug_2025/aug_2025_photocopy.pdf",
@@ -13,6 +19,6 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-03-13T11:31:01.920Z",
-  "count": 2
+  "lastUpdated": "2026-03-13T11:54:42.232Z",
+  "count": 3
 }
