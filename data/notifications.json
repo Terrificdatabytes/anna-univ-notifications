@@ -1,15 +1,21 @@
 {
   "notifications": [
     {
-      "id": "a405c4ee",
-      "title": "Distance Education - Online Mode - (MBA) Web Portal is Opened for Registration of December 2025  End Semester Examinations (e-VBAB Network Project Students (Afghanistan and Africa)).-Click Here",
-      "link": "http://coe.annauniv.edu/aucoe/pdf/distance/dec_2025/Notification_Foreign_Students.pdf",
+      "id": "631080b0",
+      "title": "Distance Education:- Web Portal is opened for Downloading the Hall Ticket for Online Mode MBA (Business analytics and General Management) - December 2025 Online Examinations. Candidates can download the Hall Ticket from Student login.[https://coe.annauniv.edu/home/]",
+      "link": null,
       "isNew": true
     },
     {
       "id": "c170f0d4",
       "title": "Distance Education – Online Mode (MBA): The Web Portal has been opened for registration of the December 2025 End Semester Examinations from 25-03-2026 to 30-03-2026.-Click Here",
       "link": "http://coe.annauniv.edu/aucoe/pdf/distance/dec_2025/Notification_Online_Students_Registration.pdf",
+      "isNew": true
+    },
+    {
+      "id": "a405c4ee",
+      "title": "Distance Education - Online Mode - (MBA) Web Portal is Opened for Registration of December 2025  End Semester Examinations (e-VBAB Network Project Students (Afghanistan and Africa)).-Click Here",
+      "link": "http://coe.annauniv.edu/aucoe/pdf/distance/dec_2025/Notification_Foreign_Students.pdf",
       "isNew": true
     },
     {
@@ -43,6 +49,6 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-04-04T11:55:04.981Z",
-  "count": 7
+  "lastUpdated": "2026-04-04T12:30:14.787Z",
+  "count": 8
 }
