@@ -8,9 +8,10 @@ name: Deploy Cloudflare Worker
 #   1. Add these secrets under Settings → Secrets → Actions:
 #        CLOUDFLARE_API_TOKEN      – Cloudflare API token (Workers + KV write)
 #        CLOUDFLARE_ACCOUNT_ID     – Your Cloudflare account ID
-#        CF_WORKER_GITHUB_TOKEN    – GitHub fine-grained PAT with "Actions: write"
-#                                    permission on this repo (used by the Worker
-#                                    to trigger repository_dispatch events)
+#        CF_WORKER_GITHUB_TOKEN    – GitHub fine-grained PAT with TWO permissions
+#                                    on this repo:
+#                                      • Contents: write  (updates notifications.json)
+#                                      • Actions: write   (triggers repository_dispatch)
 #   2. Run the "Setup KV Namespace" workflow once from the Actions tab.
 #   3. Run (or push to main) to trigger this workflow.
 

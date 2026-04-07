@@ -234,48 +234,24 @@ async function handleScheduled(env: Env): Promise<void> {
     } catch (tsError) {
       console.error('Failed to update timestamps on error path:', tsError);
     }
-    await appendWorkerLog(env, {
-      timestamp: now,
-      notificationsCount: 0,
-      hasNew: false,
-      status: 'error',
-      error: errMsg,
-    });
-    return;
-  }
-
-  // 2. Load previously seen notification IDs from KV
-  const storedIdsJson = await env.NOTIFICATIONS_KV.get('notification_ids');
-  const storedIds = new Set<string>(
-    storedIdsJson ? (JSON.parse(storedIdsJson) as string[]) : [],
-  );
-
-  const currentIds = notifications.map(n => n.id);
-
-  // 3. First run: seed KV without sending any notifications
-  if (storedIds.size === 0 && currentIds.length > 0) {
-    console.log('First run — seeding KV with current notification IDs');
-    await env.NOTIFICATIONS_KV.put(
-      'notification_ids',
-      JSON.stringify(currentIds),
-    );
-    // Update timestamps on first run so the app shows the initial check time.
     try {
-      await updateTimestamps(env, now);
-    } catch (error) {
-      console.error('Failed to update timestamps on first run:', error);
+      await appendWorkerLog(env, {
+        timestamp: now,
+        notificationsCount: 0,
+        hasNew: false,
+        status: 'error',
+        error: errMsg,
+      });
+    } catch (logError) {
+      console.error('Failed to append worker log on error path:', logError);
     }
-    await appendWorkerLog(env, {
-      timestamp: now,
-      notificationsCount: currentIds.length,
-      hasNew: false,
-      status: 'ok',
-    });
     return;
   }
 
-  // 4. Always update lastChecked and lastUpdated in the JSON file so the
+  // 2. Always update lastChecked and lastUpdated in the JSON file so the
   //    timestamp reflects every worker run, even with no new notifications.
+  //    This is done before KV operations so that a KV failure cannot prevent
+  //    the file from being updated.
   try {
     await updateTimestamps(env, now);
   } catch (error) {
@@ -284,16 +260,49 @@ async function handleScheduled(env: Env): Promise<void> {
     console.error('Failed to update timestamps:', error);
   }
 
+  // 3. Load previously seen notification IDs from KV
+  const storedIdsJson = await env.NOTIFICATIONS_KV.get('notification_ids');
+  const storedIds = new Set<string>(
+    storedIdsJson ? (JSON.parse(storedIdsJson) as string[]) : [],
+  );
+
+  const currentIds = notifications.map(n => n.id);
+
+  // 4. First run: seed KV without sending any notifications
+  //    (timestamps were already updated at step 2 above)
+  if (storedIds.size === 0 && currentIds.length > 0) {
+    console.log('First run — seeding KV with current notification IDs');
+    await env.NOTIFICATIONS_KV.put(
+      'notification_ids',
+      JSON.stringify(currentIds),
+    );
+    try {
+      await appendWorkerLog(env, {
+        timestamp: now,
+        notificationsCount: currentIds.length,
+        hasNew: false,
+        status: 'ok',
+      });
+    } catch (logError) {
+      console.error('Failed to append worker log on first run:', logError);
+    }
+    return;
+  }
+
   // 5. Check for genuinely new notifications
   const hasNew = currentIds.some(id => !storedIds.has(id));
 
   // 6. Record this run in the worker log
-  await appendWorkerLog(env, {
-    timestamp: now,
-    notificationsCount: currentIds.length,
-    hasNew,
-    status: 'ok',
-  });
+  try {
+    await appendWorkerLog(env, {
+      timestamp: now,
+      notificationsCount: currentIds.length,
+      hasNew,
+      status: 'ok',
+    });
+  } catch (logError) {
+    console.error('Failed to append worker log:', logError);
+  }
 
   if (!hasNew) {
     console.log('No new notifications');
