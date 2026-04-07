@@ -16,6 +16,9 @@ interface WorkerLogEntry {
 
 const COE_URL = 'https://coe1.annauniv.edu/home/';
 const BASE_URL = 'https://coe.annauniv.edu';
+const HEARTBEAT_DISPATCH_EVENT = 'worker-heartbeat';
+const HEARTBEAT_DISPATCH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+const LAST_HEARTBEAT_DISPATCH_KEY = 'last_heartbeat_dispatch_at';
 
 interface Notification {
   id: string;
@@ -192,7 +195,11 @@ async function appendWorkerLog(
   await env.NOTIFICATIONS_KV.put(WORKER_LOG_KEY, JSON.stringify(log));
 }
 
-async function triggerGitHubActions(env: Env): Promise<void> {
+async function dispatchRepositoryEvent(
+  env: Env,
+  eventType: string,
+  clientPayload?: Record<string, string>,
+): Promise<void> {
   const response = await fetch(
     `https://api.github.com/repos/${env.GITHUB_REPO}/dispatches`,
     {
@@ -203,7 +210,10 @@ async function triggerGitHubActions(env: Env): Promise<void> {
         'Content-Type': 'application/json',
         'User-Agent': 'anna-univ-cf-worker/1.0',
       },
-      body: JSON.stringify({ event_type: 'notifications-updated' }),
+      body: JSON.stringify({
+        event_type: eventType,
+        ...(clientPayload ? { client_payload: clientPayload } : {}),
+      }),
     },
   );
 
@@ -211,8 +221,51 @@ async function triggerGitHubActions(env: Env): Promise<void> {
     const error = await response.text();
     throw new Error(`GitHub dispatch failed (${response.status}): ${error}`);
   }
+}
 
+async function triggerGitHubActions(env: Env): Promise<void> {
+  await dispatchRepositoryEvent(env, 'notifications-updated');
   console.log('Triggered GitHub Actions workflow via repository_dispatch');
+}
+
+async function triggerHeartbeatFallback(
+  env: Env,
+  reason: string,
+): Promise<void> {
+  const nowMs = Date.now();
+  try {
+    const lastDispatchRaw = await env.NOTIFICATIONS_KV.get(
+      LAST_HEARTBEAT_DISPATCH_KEY,
+    );
+    const lastDispatchMs = lastDispatchRaw ? Number(lastDispatchRaw) : 0;
+    const shouldThrottle =
+      Number.isFinite(lastDispatchMs) &&
+      lastDispatchMs > 0 &&
+      nowMs - lastDispatchMs < HEARTBEAT_DISPATCH_INTERVAL_MS;
+
+    if (shouldThrottle) {
+      console.log('Heartbeat fallback dispatch throttled');
+      return;
+    }
+  } catch (kvError) {
+    // Proceed even when KV read fails so we still attempt the fallback dispatch.
+    console.error('Failed to read heartbeat dispatch throttle key:', kvError);
+  }
+
+  try {
+    const timestamp = new Date(nowMs).toISOString();
+    await dispatchRepositoryEvent(env, HEARTBEAT_DISPATCH_EVENT, {
+      reason,
+      timestamp,
+    });
+    await env.NOTIFICATIONS_KV.put(
+      LAST_HEARTBEAT_DISPATCH_KEY,
+      String(nowMs),
+    );
+    console.log('Triggered worker-heartbeat fallback workflow');
+  } catch (error) {
+    console.error('Failed to trigger worker-heartbeat fallback workflow:', error);
+  }
 }
 
 async function handleScheduled(env: Env): Promise<void> {
@@ -233,6 +286,7 @@ async function handleScheduled(env: Env): Promise<void> {
       await updateTimestamps(env, now);
     } catch (tsError) {
       console.error('Failed to update timestamps on error path:', tsError);
+      await triggerHeartbeatFallback(env, 'fetch-failed-direct-update');
     }
     try {
       await appendWorkerLog(env, {
@@ -258,6 +312,7 @@ async function handleScheduled(env: Env): Promise<void> {
     // Non-fatal: a concurrent write (e.g. GitHub Actions) may have changed the
     // SHA.  The timestamp will be corrected on the next scheduled run.
     console.error('Failed to update timestamps:', error);
+    await triggerHeartbeatFallback(env, 'normal-path-direct-update-failed');
   }
 
   // 3. Load previously seen notification IDs from KV

@@ -36,7 +36,8 @@ An automated system that fetches notifications from Anna University COE website 
 │   └── workflows/
 │       ├── fetch-notifications.yml  # Auto-fetch + send FCM notifications every 15 min
 │       ├── build-apk.yml            # Manual APK build
-│       └── test-notifications.yml   # Test push notifications manually
+│       ├── test-notifications.yml   # Test push notifications manually
+│       └── worker-heartbeat.yml     # Fallback timestamp updater
 ├── scraper/
 │   ├── package.json
 │   └── index.js                     # Node.js scraper
@@ -71,6 +72,9 @@ An automated system that fetches notifications from Anna University COE website 
   - Commits updated data to repository
 - **build-apk.yml**: Manually triggered to build Android APK
 - **test-notifications.yml**: Manually triggered to send test push notification
+- **worker-heartbeat.yml**: Triggered by Worker fallback repository dispatch
+  - Updates `lastChecked` and `lastUpdated` in `data/notifications.json`
+  - Keeps app timestamp moving when direct Worker `contents` API updates fail
 
 ### 3. React Native App
 - Fetches notifications from GitHub raw JSON URL
