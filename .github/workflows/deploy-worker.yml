@@ -11,10 +11,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy Worker
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate wrangler.toml
+        run: |
+          if grep -q 'REPLACE_WITH_YOUR_KV_NAMESPACE_ID' worker/wrangler.toml; then
+            echo "❌ wrangler.toml still contains the KV namespace placeholder."
+            echo "   Run: npx wrangler kv namespace create NOTIFICATIONS_KV"
+            echo "   Then update the 'id' field in worker/wrangler.toml."
+            exit 1
+          fi
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
