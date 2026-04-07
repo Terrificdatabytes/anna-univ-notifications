@@ -6,6 +6,14 @@ export interface Env {
   GITHUB_REPO: string;
 }
 
+interface WorkerLogEntry {
+  timestamp: string;
+  notificationsCount: number;
+  hasNew: boolean;
+  status: 'ok' | 'error';
+  error?: string;
+}
+
 const COE_URL = 'https://coe1.annauniv.edu/home/';
 const BASE_URL = 'https://coe.annauniv.edu';
 
@@ -105,7 +113,7 @@ async function fetchNotifications(): Promise<Notification[]> {
   return notifications;
 }
 
-async function updateLastChecked(
+async function updateTimestamps(
   env: Env,
   timestamp: string,
   retries = 2,
@@ -131,7 +139,10 @@ async function updateLastChecked(
   const fileData = (await getResponse.json()) as GitHubFileResponse;
   const data = JSON.parse(base64Decode(fileData.content)) as NotificationsData;
 
+  // Always update both lastChecked and lastUpdated so the file timestamp
+  // reflects every worker run, even when no new notifications are detected.
   data.lastChecked = timestamp;
+  data.lastUpdated = timestamp;
 
   const newContent = base64Encode(JSON.stringify(data, null, 2));
 
@@ -144,7 +155,7 @@ async function updateLastChecked(
       'User-Agent': 'anna-univ-cf-worker/1.0',
     },
     body: JSON.stringify({
-      message: `chore: update lastChecked - ${timestamp}`,
+      message: `chore: update timestamps - ${timestamp}`,
       content: newContent,
       sha: fileData.sha,
     }),
@@ -155,14 +166,30 @@ async function updateLastChecked(
     if (putResponse.status === 409 && retries > 0) {
       // SHA conflict: a concurrent write changed the file. Re-fetch and retry.
       await new Promise(resolve => setTimeout(resolve, 500));
-      return updateLastChecked(env, timestamp, retries - 1);
+      return updateTimestamps(env, timestamp, retries - 1);
     }
     throw new Error(
       `Failed to update notifications.json: HTTP ${putResponse.status}: ${errorText}`,
     );
   }
 
-  console.log(`Updated lastChecked to ${timestamp}`);
+  console.log(`Updated lastChecked and lastUpdated to ${timestamp}`);
+}
+
+const WORKER_LOG_KEY = 'worker_log';
+const WORKER_LOG_MAX_ENTRIES = 50;
+
+async function appendWorkerLog(
+  env: Env,
+  entry: WorkerLogEntry,
+): Promise<void> {
+  const raw = await env.NOTIFICATIONS_KV.get(WORKER_LOG_KEY);
+  const log: WorkerLogEntry[] = raw ? (JSON.parse(raw) as WorkerLogEntry[]) : [];
+  log.unshift(entry);
+  if (log.length > WORKER_LOG_MAX_ENTRIES) {
+    log.length = WORKER_LOG_MAX_ENTRIES;
+  }
+  await env.NOTIFICATIONS_KV.put(WORKER_LOG_KEY, JSON.stringify(log));
 }
 
 async function triggerGitHubActions(env: Env): Promise<void> {
@@ -198,7 +225,15 @@ async function handleScheduled(env: Env): Promise<void> {
     notifications = await fetchNotifications();
     console.log(`Fetched ${notifications.length} notifications`);
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
     console.error('Failed to fetch notifications:', error);
+    await appendWorkerLog(env, {
+      timestamp: now,
+      notificationsCount: 0,
+      hasNew: false,
+      status: 'error',
+      error: errMsg,
+    });
     return;
   }
 
@@ -217,20 +252,35 @@ async function handleScheduled(env: Env): Promise<void> {
       'notification_ids',
       JSON.stringify(currentIds),
     );
+    await appendWorkerLog(env, {
+      timestamp: now,
+      notificationsCount: currentIds.length,
+      hasNew: false,
+      status: 'ok',
+    });
     return;
   }
 
-  // 4. Always update lastChecked in the JSON file so the timestamp stays current
+  // 4. Always update lastChecked and lastUpdated in the JSON file so the
+  //    timestamp reflects every worker run, even with no new notifications.
   try {
-    await updateLastChecked(env, now);
+    await updateTimestamps(env, now);
   } catch (error) {
     // Non-fatal: a concurrent write (e.g. GitHub Actions) may have changed the
     // SHA.  The timestamp will be corrected on the next scheduled run.
-    console.error('Failed to update lastChecked:', error);
+    console.error('Failed to update timestamps:', error);
   }
 
   // 5. Check for genuinely new notifications
   const hasNew = currentIds.some(id => !storedIds.has(id));
+
+  // 6. Record this run in the worker log
+  await appendWorkerLog(env, {
+    timestamp: now,
+    notificationsCount: currentIds.length,
+    hasNew,
+    status: 'ok',
+  });
 
   if (!hasNew) {
     console.log('No new notifications');
@@ -239,10 +289,10 @@ async function handleScheduled(env: Env): Promise<void> {
 
   console.log('New notifications detected — updating KV and triggering workflow');
 
-  // 6. Persist updated IDs immediately so the next cron run won't re-trigger
+  // 7. Persist updated IDs immediately so the next cron run won't re-trigger
   await env.NOTIFICATIONS_KV.put('notification_ids', JSON.stringify(currentIds));
 
-  // 7. Trigger GitHub Actions to scrape, send FCM, and commit the data file
+  // 8. Trigger GitHub Actions to scrape, send FCM, and commit the data file
   try {
     await triggerGitHubActions(env);
   } catch (error) {
@@ -257,5 +307,24 @@ export default {
     ctx: ExecutionContext,
   ): Promise<void> {
     ctx.waitUntil(handleScheduled(env));
+  },
+
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+
+    if (url.pathname === '/log') {
+      const raw = await env.NOTIFICATIONS_KV.get(WORKER_LOG_KEY);
+      const log: WorkerLogEntry[] = raw ? (JSON.parse(raw) as WorkerLogEntry[]) : [];
+      return new Response(JSON.stringify({ entries: log, count: log.length }, null, 2), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
+    return new Response('anna-univ-notifications worker is running.\nGET /log for execution history.', {
+      headers: { 'Content-Type': 'text/plain' },
+    });
   },
 } satisfies ExportedHandler<Env>;
