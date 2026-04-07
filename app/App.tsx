@@ -78,7 +78,7 @@ function App(): React.JSX.Element {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(NOTIFICATIONS_URL);
+      const response = await fetch(`${NOTIFICATIONS_URL}?_=${Date.now()}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
