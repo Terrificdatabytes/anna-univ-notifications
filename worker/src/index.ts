@@ -227,6 +227,13 @@ async function handleScheduled(env: Env): Promise<void> {
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
     console.error('Failed to fetch notifications:', error);
+    // Update timestamps even on fetch failure so the app always shows a
+    // fresh "last checked" time regardless of COE website availability.
+    try {
+      await updateTimestamps(env, now);
+    } catch (tsError) {
+      console.error('Failed to update timestamps on error path:', tsError);
+    }
     await appendWorkerLog(env, {
       timestamp: now,
       notificationsCount: 0,
@@ -252,6 +259,12 @@ async function handleScheduled(env: Env): Promise<void> {
       'notification_ids',
       JSON.stringify(currentIds),
     );
+    // Update timestamps on first run so the app shows the initial check time.
+    try {
+      await updateTimestamps(env, now);
+    } catch (error) {
+      console.error('Failed to update timestamps on first run:', error);
+    }
     await appendWorkerLog(env, {
       timestamp: now,
       notificationsCount: currentIds.length,
