@@ -4,13 +4,13 @@ compatibility_date = "2024-09-23"
 
 # ---------------------------------------------------------------------------
 # Cron Triggers
-# Runs every 5 minutes — far more reliable than GitHub Actions cron, which
+# Runs every minute — far more reliable than GitHub Actions cron, which
 # can be delayed by 15-30+ minutes during busy periods.
 # The evening schedule (5:30 PM – 6:50 PM IST) that used to require a
 # separate workflow file is now covered automatically.
 # ---------------------------------------------------------------------------
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["* * * * *"]
 
 # ---------------------------------------------------------------------------
 # KV Namespace — stores the set of seen notification IDs between runs.
