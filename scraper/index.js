@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { createHash } from 'crypto';
-import { writeFileSync, mkdirSync } from 'fs';
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'fs';
 import https from 'https';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -99,10 +99,22 @@ async function scrapeNotifications() {
     
     console.log(`Found ${notifications.length} notifications`);
     
+    // Preserve lastChecked from the existing file (written by the CF Worker every minute)
+    let lastChecked = null;
+    try {
+      if (existsSync(OUTPUT_FILE)) {
+        const existing = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
+        lastChecked = existing.lastChecked || null;
+      }
+    } catch (_) {
+      // ignore – no existing file or parse error
+    }
+
     // Prepare output data
     const outputData = {
       notifications,
       lastUpdated: new Date().toISOString(),
+      lastChecked,
       count: notifications.length
     };
     
