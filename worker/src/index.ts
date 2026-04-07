@@ -239,8 +239,6 @@ async function triggerHeartbeatFallback(
     );
     const lastDispatchMs = lastDispatchRaw ? Number(lastDispatchRaw) : 0;
     const shouldThrottle =
-      Number.isFinite(lastDispatchMs) &&
-      lastDispatchMs > 0 &&
       nowMs - lastDispatchMs < HEARTBEAT_DISPATCH_INTERVAL_MS;
 
     if (shouldThrottle) {
@@ -248,7 +246,7 @@ async function triggerHeartbeatFallback(
       return;
     }
   } catch (kvError) {
-    // Proceed even when KV read fails so we still attempt the fallback dispatch.
+    // Proceed even if KV read fails so we still attempt the fallback dispatch.
     console.error('Failed to read heartbeat dispatch throttle key:', kvError);
   }
 
