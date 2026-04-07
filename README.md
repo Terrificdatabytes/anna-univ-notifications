@@ -224,14 +224,36 @@ The test workflow validates:
 
 ## 🔐 Setup for Repository Maintainers
 
-To enable push notifications, you need to configure Firebase:
+Everything is done from **GitHub.com** — no local tools or CLI required.
 
-1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Add an Android app with package name `com.annaunivnotifications`
-3. Download `google-services.json` and place it in `app/android/app/`
-4. Generate a service account key and add it as `FIREBASE_SERVICE_ACCOUNT` secret in GitHub
+### Step 1 — Add GitHub Secrets
 
-See [FCM_SETUP.md](docs/FCM_SETUP.md) for detailed instructions.
+Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
+
+| Secret name | Value |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token with *Workers KV: Edit* and *Workers Scripts: Edit* permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID (found on the Cloudflare dashboard right sidebar) |
+| `CF_WORKER_GITHUB_TOKEN` | A GitHub fine-grained PAT for **this repo** with *Actions: write* permission (the Worker uses this to trigger scrape workflows) |
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase service account JSON key (see [FCM_SETUP.md](docs/FCM_SETUP.md)) |
+
+### Step 2 — Create KV Namespace (one-time)
+
+1. Go to the **Actions** tab on GitHub.com
+2. Select **"Setup KV Namespace (Run Once)"**
+3. Click **Run workflow → Run workflow**
+4. The workflow creates the Cloudflare KV namespace via the API and commits the namespace ID directly into `worker/wrangler.toml` — nothing to do locally
+
+### Step 3 — Deploy the Worker
+
+1. Go to the **Actions** tab
+2. Select **"Deploy Cloudflare Worker"**
+3. Click **Run workflow → Run workflow**
+4. The workflow deploys the Worker **and** automatically pushes `CF_WORKER_GITHUB_TOKEN` as the Worker's `GITHUB_TOKEN` secret — no local `wrangler secret put` needed
+
+After Step 3 succeeds the Worker is live and running on its cron schedule.
+
+> **Re-deploys**: any push to `main` that touches `worker/` triggers the deploy workflow automatically.
 
 ## 📝 License
 

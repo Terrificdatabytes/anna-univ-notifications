@@ -14,9 +14,10 @@ crons = ["* * * * *"]
 
 # ---------------------------------------------------------------------------
 # KV Namespace — stores the set of seen notification IDs between runs.
-# Setup (one-time):
-#   npx wrangler kv namespace create NOTIFICATIONS_KV
-# Then replace the placeholder id below with the value from that command.
+# Setup (one-time, no CLI needed):
+#   Go to Actions tab on GitHub.com → "Setup KV Namespace" → Run workflow.
+#   The workflow creates the namespace via the Cloudflare API and
+#   automatically writes the real ID here.
 # ---------------------------------------------------------------------------
 [[kv_namespaces]]
 binding = "NOTIFICATIONS_KV"
@@ -29,8 +30,9 @@ id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
 GITHUB_REPO = "Terrificdatabytes/anna-univ-notifications"
 
 # ---------------------------------------------------------------------------
-# Secrets (set once via CLI, never committed):
-#   npx wrangler secret put GITHUB_TOKEN
-#     → A GitHub fine-grained PAT with "Actions: write" permission on this
-#       repo so the Worker can trigger repository_dispatch events.
+# Secrets — set automatically during deploy (no CLI needed):
+#   GITHUB_TOKEN  → add a GitHub fine-grained PAT as the GitHub secret
+#                   CF_WORKER_GITHUB_TOKEN (Actions: write on this repo).
+#                   The "Deploy Cloudflare Worker" workflow pushes it to the
+#                   Worker on every deploy using wrangler-action's secrets param.
 # ---------------------------------------------------------------------------

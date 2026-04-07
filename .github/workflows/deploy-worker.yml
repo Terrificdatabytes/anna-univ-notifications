@@ -1,5 +1,19 @@
 name: Deploy Cloudflare Worker
 
+# Triggers:
+#   • Automatically on every push to main that touches worker/
+#   • Manually from the Actions tab on GitHub.com
+#
+# One-time setup (all done on GitHub.com — no local CLI needed):
+#   1. Add these secrets under Settings → Secrets → Actions:
+#        CLOUDFLARE_API_TOKEN      – Cloudflare API token (Workers + KV write)
+#        CLOUDFLARE_ACCOUNT_ID     – Your Cloudflare account ID
+#        CF_WORKER_GITHUB_TOKEN    – GitHub fine-grained PAT with "Actions: write"
+#                                    permission on this repo (used by the Worker
+#                                    to trigger repository_dispatch events)
+#   2. Run the "Setup KV Namespace" workflow once from the Actions tab.
+#   3. Run (or push to main) to trigger this workflow.
+
 on:
   push:
     branches: [main]
@@ -18,18 +32,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate wrangler.toml
+      - name: Validate KV namespace is configured
         run: |
           if grep -q 'REPLACE_WITH_YOUR_KV_NAMESPACE_ID' worker/wrangler.toml; then
-            echo "❌ wrangler.toml still contains the KV namespace placeholder."
-            echo "   Run: npx wrangler kv namespace create NOTIFICATIONS_KV"
-            echo "   Then update the 'id' field in worker/wrangler.toml."
+            echo "❌ KV namespace not set up yet."
+            echo "   Go to Actions tab → 'Setup KV Namespace' → Run workflow."
+            echo "   Then re-run this workflow."
             exit 1
           fi
+          echo "✅ KV namespace ID found in wrangler.toml."
 
-      - name: Deploy to Cloudflare Workers
+      - name: Deploy worker and set secrets
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: worker
+          secrets: |
+            GITHUB_TOKEN
+        env:
+          GITHUB_TOKEN: ${{ secrets.CF_WORKER_GITHUB_TOKEN }}
