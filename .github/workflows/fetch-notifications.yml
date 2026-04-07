@@ -1,16 +1,17 @@
 name: Fetch Notifications
 
 on:
-  # Triggered by the Cloudflare Worker whenever it detects new notifications.
-  # The Worker runs every 5 minutes via a reliable CF Cron Trigger and calls
-  # the GitHub repository_dispatch API only when something actually changed,
-  # so this workflow now runs on-demand instead of on a fixed schedule.
-  repository_dispatch:
-    types: [notifications-updated]
-  # Hourly fallback: runs even if the Cloudflare Worker is unavailable.
-  schedule:
-    - cron: '*/5 * * * *'
+  # Manual trigger or first launch
   workflow_dispatch:
+    inputs:
+      chain_run:
+        description: 'Chain run number (auto-incremented — do not set manually)'
+        required: false
+        default: '1'
+        type: string
+  # Failsafe: if the chain ever breaks (e.g. GitHub outage), this restarts it
+  schedule:
+    - cron: '0 * * * *'   # top of every hour — only fires if no chain is running
 
 # Prevent overlapping runs from committing conflicting data
 concurrency:
@@ -20,103 +21,164 @@ concurrency:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 65 min ceiling — loop exits at 55 min, leaving time to chain before GitHub kills the job
+    timeout-minutes: 65
     permissions:
       contents: write
-    
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
-      
+        uses: actions/checkout@v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: Save previous notifications
+
+      - name: Display run info
         run: |
-          if [ -f data/notifications.json ]; then
-            cp data/notifications.json data/notifications.json.old
-            echo "Previous notifications saved"
-          else
-            echo '{"notifications":[],"lastUpdated":"","count":0}' > data/notifications.json.old
-            echo "No previous notifications found, created empty file"
-          fi
-      
+          echo "================================================"
+          echo "CHAIN RUN : ${{ inputs.chain_run || '(scheduled)' }}"
+          echo "START TIME: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "================================================"
+
       - name: Install scraper dependencies
-        run: |
-          cd scraper
-          npm install
-      
+        run: cd scraper && npm install
+
       - name: Install scripts dependencies
-        run: |
-          cd scripts
-          npm install
-      
-      - name: Run scraper
-        run: |
-          cd scraper
-          npm start
-      
-      - name: Detect new notifications
-        id: detect_new
-        run: |
-          # Extract notification IDs from old and new data to find truly new notifications
-          # This approach works even if the website deletes old notifications
-          OLD_IDS=$(jq -r '.notifications[].id' data/notifications.json.old 2>/dev/null | sort -u || echo "")
-          NEW_IDS=$(jq -r '.notifications[].id' data/notifications.json 2>/dev/null | sort -u || echo "")
-          
-          # Find IDs that are in new data but not in old data
-          NEW_NOTIFICATION_IDS=$(comm -23 <(echo "$NEW_IDS") <(echo "$OLD_IDS"))
-          
-          # Count new notifications (handle empty case where wc -l would return 1 for empty newline)
-          if [ -n "$NEW_NOTIFICATION_IDS" ]; then
-            NEW_NOTIF_COUNT=$(echo "$NEW_NOTIFICATION_IDS" | grep -c .)
-            
-            # Get the first new notification ID
-            FIRST_NEW_ID=$(echo "$NEW_NOTIFICATION_IDS" | head -n 1)
-            
-            # Get the title of the first new notification
-            FIRST_NEW_TITLE=$(jq -r --arg id "$FIRST_NEW_ID" '.notifications[] | select(.id == $id) | .title' data/notifications.json | head -n 1)
-            
-            echo "new_notifications=true" >> $GITHUB_OUTPUT
-            echo "count=$NEW_NOTIF_COUNT" >> $GITHUB_OUTPUT
-            echo "first_title=$FIRST_NEW_TITLE" >> $GITHUB_OUTPUT
-            
-            echo "✅ Found $NEW_NOTIF_COUNT new notification(s)"
-            echo "New notification IDs:"
-            echo "$NEW_NOTIFICATION_IDS"
-          else
-            echo "new_notifications=false" >> $GITHUB_OUTPUT
-            echo "count=0" >> $GITHUB_OUTPUT
-            echo "first_title=" >> $GITHUB_OUTPUT
-            echo "ℹ️  No new notifications"
-          fi
-      
-      - name: Send Firebase push notification
-        if: steps.detect_new.outputs.new_notifications == 'true'
+        run: cd scripts && npm install
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # MAIN LOOP — polls coe.annauniv.edu every 60 s for 55 minutes.
+      # Stops at 55 min so the chaining step can fire before GitHub's 65-min limit.
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Continuous scrape loop (55 min × 60 s)
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          echo "Sending push notification for new Anna University notifications via Firebase FCM..."
-          
-          COUNT="${{ steps.detect_new.outputs.count }}"
-          TITLE="${{ steps.detect_new.outputs.first_title }}"
-          
-          if [ "$COUNT" -eq "1" ]; then
-            node scripts/send-new-notification.js "$TITLE" 1
+          LOOP_DURATION=3300   # 55 minutes
+          POLL_INTERVAL=60     # seconds between polls
+          START_TS=$(date +%s)
+          ITERATION=0
+
+          # Seed the "old" state from whatever is already committed
+          if [ -f data/notifications.json ]; then
+            cp data/notifications.json data/notifications.json.old
           else
-            node scripts/send-new-notification.js "$TITLE" "$COUNT"
+            echo '{"notifications":[],"lastUpdated":"","count":0}' > data/notifications.json.old
           fi
-      
-      - name: Commit and push changes
-        run: |
-          git config --global user.name 'github-actions[bot]'
+
+          git config --global user.name  'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/notifications.json
-          
-          # Remove old backup file
+
+          echo "Loop started. Will poll every ${POLL_INTERVAL}s for ${LOOP_DURATION}s total."
+
+          while true; do
+            NOW=$(date +%s)
+            ELAPSED=$(( NOW - START_TS ))
+
+            if [ "$ELAPSED" -ge "$LOOP_DURATION" ]; then
+              echo "⏱ 55-minute window reached — exiting loop."
+              break
+            fi
+
+            ITERATION=$(( ITERATION + 1 ))
+            echo ""
+            echo "────────────────────────────────────────────────"
+            echo "Iteration #${ITERATION} | Elapsed: ${ELAPSED}s | $(date -u '+%H:%M:%S UTC')"
+            echo "────────────────────────────────────────────────"
+
+            # ── Run the scraper ────────────────────────────────────────────────
+            (cd scraper && npm start)
+
+            # ── Detect new notifications by ID comparison ──────────────────────
+            OLD_IDS=$(jq -r '.notifications[].id' data/notifications.json.old 2>/dev/null | sort -u || echo "")
+            NEW_IDS=$(jq -r '.notifications[].id' data/notifications.json 2>/dev/null | sort -u || echo "")
+            NEW_NOTIFICATION_IDS=$(comm -23 <(echo "$NEW_IDS") <(echo "$OLD_IDS"))
+
+            if [ -n "$NEW_NOTIFICATION_IDS" ]; then
+              NEW_COUNT=$(echo "$NEW_NOTIFICATION_IDS" | grep -c .)
+              FIRST_ID=$(echo "$NEW_NOTIFICATION_IDS" | head -n 1)
+              FIRST_TITLE=$(jq -r --arg id "$FIRST_ID" \
+                '.notifications[] | select(.id == $id) | .title' \
+                data/notifications.json | head -n 1)
+
+              echo "🔔 ${NEW_COUNT} new notification(s) detected!"
+              echo "   First: ${FIRST_TITLE}"
+
+              # Send Firebase push notification
+              if [ "$NEW_COUNT" -eq "1" ]; then
+                node scripts/send-new-notification.js "$FIRST_TITLE" 1
+              else
+                node scripts/send-new-notification.js "$FIRST_TITLE" "$NEW_COUNT"
+              fi
+            else
+              echo "✓ No new notifications."
+            fi
+
+            # ── Commit if data changed ─────────────────────────────────────────
+            git add data/notifications.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Update notifications - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+              git push
+              echo "   ✓ Committed and pushed."
+              # Roll forward the baseline for the next iteration
+              cp data/notifications.json data/notifications.json.old
+            fi
+
+            # ── Sleep for remainder of the 60 s window ─────────────────────────
+            ITER_ELAPSED=$(( $(date +%s) - NOW ))
+            SLEEP_FOR=$(( POLL_INTERVAL - ITER_ELAPSED ))
+            if [ "$SLEEP_FOR" -gt 0 ]; then
+              echo "   Sleeping ${SLEEP_FOR}s…"
+              sleep "$SLEEP_FOR"
+            fi
+          done
+
+          # Clean up temp file
           rm -f data/notifications.json.old
-          
-          git diff --staged --quiet || git commit -m "Update notifications - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          git push
+          echo ""
+          echo "Loop complete. Total iterations: ${ITERATION}"
+
+      # ──────────────────────────────────────────────────────────────────────────
+      # CHAIN — dispatch the next run before this job ends so there is no gap.
+      # The chain_run counter increments each time for easy tracing in the UI.
+      # ──────────────────────────────────────────────────────────────────────────
+      - name: Trigger next chained run
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CURRENT="${{ inputs.chain_run || '0' }}"
+          # strip non-numeric chars in case the scheduled trigger passes an empty string
+          CURRENT=$(echo "$CURRENT" | tr -dc '0-9')
+          CURRENT=${CURRENT:-0}
+          NEXT=$(( CURRENT + 1 ))
+
+          echo "Dispatching chain run #${NEXT}…"
+
+          HTTP_STATUS=$(curl -s -o /tmp/gh_resp.json -w "%{http_code}" \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/fetch-notifications.yml/dispatches" \
+            -d "{\"ref\":\"${{ github.ref_name }}\",\"inputs\":{\"chain_run\":\"${NEXT}\"}}")
+
+          if [ "$HTTP_STATUS" = "204" ]; then
+            echo "✓ Chain run #${NEXT} dispatched successfully."
+          else
+            echo "⚠ Dispatch returned HTTP ${HTTP_STATUS}:"
+            cat /tmp/gh_resp.json
+            echo ""
+            echo "The hourly schedule cron will restart the chain automatically."
+          fi
+
+      - name: Summary
+        run: |
+          echo "================================================"
+          echo "RUN COMPLETE"
+          echo "End time : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "Next run : chain_run=$(( ${{ inputs.chain_run || 0 }} + 1 ))"
+          echo "================================================"
+          jq '{count:.count, lastUpdated:.lastUpdated, latest:.notifications[0].title}' \
+            data/notifications.json 2>/dev/null || echo "(no data)"
