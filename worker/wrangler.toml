@@ -32,7 +32,9 @@ GITHUB_REPO = "Terrificdatabytes/anna-univ-notifications"
 # ---------------------------------------------------------------------------
 # Secrets — set automatically during deploy (no CLI needed):
 #   GITHUB_TOKEN  → add a GitHub fine-grained PAT as the GitHub secret
-#                   CF_WORKER_GITHUB_TOKEN (Actions: write on this repo).
+#                   CF_WORKER_GITHUB_TOKEN with TWO permissions on this repo:
+#                     • Contents: write  (to update data/notifications.json)
+#                     • Actions: write   (to trigger repository_dispatch)
 #                   The "Deploy Cloudflare Worker" workflow pushes it to the
 #                   Worker on every deploy using wrangler-action's secrets param.
 # ---------------------------------------------------------------------------
