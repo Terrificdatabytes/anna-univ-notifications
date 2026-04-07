@@ -66,10 +66,10 @@ jobs:
       - name: Write KV namespace ID into wrangler.toml
         run: |
           KV_ID="${{ steps.kv.outputs.kv_id }}"
-          # Replace placeholder (first run) or update an existing ID (re-run)
+          # Replace placeholder (first run) or update an existing ID (re-run).
+          # Match any non-quote characters to handle IDs of any length/format.
           sed -i "s|id = \"REPLACE_WITH_YOUR_KV_NAMESPACE_ID\"|id = \"${KV_ID}\"|" worker/wrangler.toml
-          # Also handle re-runs where a real ID is already present
-          sed -i "s|id = \"[0-9a-f]\{32\}\"|id = \"${KV_ID}\"|" worker/wrangler.toml
+          sed -i "s|id = \"[^\"]*\"|id = \"${KV_ID}\"|" worker/wrangler.toml
           echo "worker/wrangler.toml updated:"
           grep 'id = ' worker/wrangler.toml
 
