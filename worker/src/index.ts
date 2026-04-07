@@ -252,14 +252,19 @@ async function triggerHeartbeatFallback(
 
   try {
     const timestamp = new Date(nowMs).toISOString();
+    try {
+      await env.NOTIFICATIONS_KV.put(
+        LAST_HEARTBEAT_DISPATCH_KEY,
+        String(nowMs),
+      );
+    } catch (kvError) {
+      console.error('Failed to persist heartbeat dispatch throttle key:', kvError);
+    }
+
     await dispatchRepositoryEvent(env, HEARTBEAT_DISPATCH_EVENT, {
       reason,
       timestamp,
     });
-    await env.NOTIFICATIONS_KV.put(
-      LAST_HEARTBEAT_DISPATCH_KEY,
-      String(nowMs),
-    );
     console.log('Triggered worker-heartbeat fallback workflow');
   } catch (error) {
     console.error('Failed to trigger worker-heartbeat fallback workflow:', error);

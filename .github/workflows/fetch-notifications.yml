@@ -9,7 +9,7 @@ on:
     types: [notifications-updated]
   # Hourly fallback: runs even if the Cloudflare Worker is unavailable.
   schedule:
-    - cron: '0 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 # Prevent overlapping runs from committing conflicting data
