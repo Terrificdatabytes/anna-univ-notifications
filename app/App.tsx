@@ -47,6 +47,7 @@ interface Notification {
 interface NotificationData {
   notifications: Notification[];
   lastUpdated: string;
+  lastChecked?: string | null;
   count: number;
 }
 
@@ -55,6 +56,7 @@ function App(): React.JSX.Element {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [lastChecked, setLastChecked] = useState<string>('');
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
 
@@ -65,6 +67,9 @@ function App(): React.JSX.Element {
         const data: NotificationData = JSON.parse(cached);
         setNotifications(data.notifications);
         setLastUpdated(data.lastUpdated);
+        if (data.lastChecked) {
+          setLastChecked(data.lastChecked);
+        }
       }
     } catch (error) {
       console.error('Error loading cached notifications:', error);
@@ -83,6 +88,9 @@ function App(): React.JSX.Element {
 
       setNotifications(data.notifications);
       setLastUpdated(data.lastUpdated);
+      if (data.lastChecked) {
+        setLastChecked(data.lastChecked);
+      }
 
       // Cache the data
       await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
@@ -240,6 +248,11 @@ function App(): React.JSX.Element {
           Last updated: {formatDate(lastUpdated)}
         </Text>
       )}
+      {lastChecked && (
+        <Text style={styles.lastCheckedText}>
+          Last checked: {formatDate(lastChecked)}
+        </Text>
+      )}
     </View>
   );
 
@@ -355,6 +368,12 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginTop: 8,
     opacity: 0.8,
+  },
+  lastCheckedText: {
+    fontSize: 12,
+    color: '#ffffff',
+    marginTop: 2,
+    opacity: 0.7,
   },
   listContent: {
     padding: 16,
