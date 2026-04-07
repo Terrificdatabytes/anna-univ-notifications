@@ -21,7 +21,7 @@ crons = ["* * * * *"]
 # ---------------------------------------------------------------------------
 [[kv_namespaces]]
 binding = "NOTIFICATIONS_KV"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "5a78fb8e573942968ff6fdf1b64d01a2"
 
 # ---------------------------------------------------------------------------
 # Non-secret environment variables
