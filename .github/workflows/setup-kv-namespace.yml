@@ -1,0 +1,87 @@
+name: Setup KV Namespace (Run Once)
+
+# Run this workflow ONCE from the Actions tab on GitHub.com to create the
+# Cloudflare KV namespace and write its ID back to worker/wrangler.toml.
+# After this workflow succeeds, run "Deploy Cloudflare Worker" to go live.
+#
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#   CLOUDFLARE_API_TOKEN   – Cloudflare API token with Workers KV write access
+#   CLOUDFLARE_ACCOUNT_ID  – Your Cloudflare account ID
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup-kv:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create (or find existing) KV namespace via Cloudflare API
+        id: kv
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          KV_TITLE="anna-univ-notifications-NOTIFICATIONS_KV"
+
+          # Try to create the namespace
+          CREATE=$(curl -s -X POST \
+            "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data "{\"title\":\"${KV_TITLE}\"}")
+
+          SUCCESS=$(echo "$CREATE" | jq -r '.success')
+
+          if [ "$SUCCESS" = "true" ]; then
+            KV_ID=$(echo "$CREATE" | jq -r '.result.id')
+            echo "✅ Created new KV namespace: $KV_ID"
+          else
+            # Namespace may already exist — find it in the list
+            echo "ℹ️  Create returned: $(echo "$CREATE" | jq -r '.errors[0].message')"
+            echo "   Searching existing namespaces for: $KV_TITLE"
+
+            LIST=$(curl -s \
+              "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces?per_page=100" \
+              -H "Authorization: Bearer ${CF_API_TOKEN}")
+
+            KV_ID=$(echo "$LIST" | jq -r --arg title "$KV_TITLE" \
+              '.result[] | select(.title==$title) | .id')
+
+            if [ -z "$KV_ID" ]; then
+              echo "❌ Could not create or find KV namespace. Full response:"
+              echo "$CREATE"
+              exit 1
+            fi
+            echo "✅ Found existing KV namespace: $KV_ID"
+          fi
+
+          echo "kv_id=$KV_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Write KV namespace ID into wrangler.toml
+        run: |
+          KV_ID="${{ steps.kv.outputs.kv_id }}"
+          # Replace placeholder (first run) or update an existing ID (re-run).
+          # Match any non-quote characters to handle IDs of any length/format.
+          sed -i "s|id = \"REPLACE_WITH_YOUR_KV_NAMESPACE_ID\"|id = \"${KV_ID}\"|" worker/wrangler.toml
+          sed -i "s|id = \"[^\"]*\"|id = \"${KV_ID}\"|" worker/wrangler.toml
+          echo "worker/wrangler.toml updated:"
+          grep 'id = ' worker/wrangler.toml
+
+      - name: Commit and push updated wrangler.toml
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add worker/wrangler.toml
+          if git diff --staged --quiet; then
+            echo "ℹ️  wrangler.toml already up to date — nothing to commit."
+          else
+            git commit -m "chore: set Cloudflare KV namespace ID in wrangler.toml [skip ci]"
+            git push
+            echo "✅ wrangler.toml committed and pushed."
+          fi

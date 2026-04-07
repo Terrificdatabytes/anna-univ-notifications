@@ -1,0 +1,38 @@
+name = "anna-univ-notifications"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# ---------------------------------------------------------------------------
+# Cron Triggers
+# Runs every minute — far more reliable than GitHub Actions cron, which
+# can be delayed by 15-30+ minutes during busy periods.
+# The evening schedule (5:30 PM – 6:50 PM IST) that used to require a
+# separate workflow file is now covered automatically.
+# ---------------------------------------------------------------------------
+[triggers]
+crons = ["* * * * *"]
+
+# ---------------------------------------------------------------------------
+# KV Namespace — stores the set of seen notification IDs between runs.
+# Setup (one-time, no CLI needed):
+#   Go to Actions tab on GitHub.com → "Setup KV Namespace" → Run workflow.
+#   The workflow creates the namespace via the Cloudflare API and
+#   automatically writes the real ID here.
+# ---------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "NOTIFICATIONS_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# ---------------------------------------------------------------------------
+# Non-secret environment variables
+# ---------------------------------------------------------------------------
+[vars]
+GITHUB_REPO = "Terrificdatabytes/anna-univ-notifications"
+
+# ---------------------------------------------------------------------------
+# Secrets — set automatically during deploy (no CLI needed):
+#   GITHUB_TOKEN  → add a GitHub fine-grained PAT as the GitHub secret
+#                   CF_WORKER_GITHUB_TOKEN (Actions: write on this repo).
+#                   The "Deploy Cloudflare Worker" workflow pushes it to the
+#                   Worker on every deploy using wrangler-action's secrets param.
+# ---------------------------------------------------------------------------
