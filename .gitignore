@@ -3,6 +3,8 @@ scraper/node_modules/
 scraper/package-lock.json
 scripts/node_modules/
 scripts/package-lock.json
+worker/node_modules/
+worker/package-lock.json
 
 # App
 app/node_modules/
