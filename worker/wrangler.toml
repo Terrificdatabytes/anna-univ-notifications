@@ -1,0 +1,36 @@
+name = "anna-univ-notifications"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# ---------------------------------------------------------------------------
+# Cron Triggers
+# Runs every 5 minutes — far more reliable than GitHub Actions cron, which
+# can be delayed by 15-30+ minutes during busy periods.
+# The evening schedule (5:30 PM – 6:50 PM IST) that used to require a
+# separate workflow file is now covered automatically.
+# ---------------------------------------------------------------------------
+[triggers]
+crons = ["*/5 * * * *"]
+
+# ---------------------------------------------------------------------------
+# KV Namespace — stores the set of seen notification IDs between runs.
+# Setup (one-time):
+#   npx wrangler kv namespace create NOTIFICATIONS_KV
+# Then replace the placeholder id below with the value from that command.
+# ---------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "NOTIFICATIONS_KV"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+
+# ---------------------------------------------------------------------------
+# Non-secret environment variables
+# ---------------------------------------------------------------------------
+[vars]
+GITHUB_REPO = "Terrificdatabytes/anna-univ-notifications"
+
+# ---------------------------------------------------------------------------
+# Secrets (set once via CLI, never committed):
+#   npx wrangler secret put GITHUB_TOKEN
+#     → A GitHub fine-grained PAT with "Actions: write" permission on this
+#       repo so the Worker can trigger repository_dispatch events.
+# ---------------------------------------------------------------------------

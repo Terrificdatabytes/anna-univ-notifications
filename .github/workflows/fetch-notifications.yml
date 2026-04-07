@@ -1,14 +1,26 @@
 name: Fetch Notifications
 
 on:
+  # Triggered by the Cloudflare Worker whenever it detects new notifications.
+  # The Worker runs every 5 minutes via a reliable CF Cron Trigger and calls
+  # the GitHub repository_dispatch API only when something actually changed,
+  # so this workflow now runs on-demand instead of on a fixed schedule.
+  repository_dispatch:
+    types: [notifications-updated]
+  # Hourly fallback: runs even if the Cloudflare Worker is unavailable.
   schedule:
-    # Run every 15 minutes
-    - cron: '*/5 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
+
+# Prevent overlapping runs from committing conflicting data
+concurrency:
+  group: fetch-notifications
+  cancel-in-progress: false
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     
