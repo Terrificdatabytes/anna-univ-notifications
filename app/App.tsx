@@ -49,6 +49,7 @@ interface NotificationData {
   lastUpdated: string;
   lastChecked?: string | null;
   count: number;
+  developer?: string;
 }
 
 function App(): React.JSX.Element {
@@ -59,6 +60,7 @@ function App(): React.JSX.Element {
   const [lastChecked, setLastChecked] = useState<string>('');
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+  const [developer, setDeveloper] = useState<string>('K.S.PRAVEEN Cse 2nd Year AURCM MADURAI');
 
   const loadCachedNotifications = async () => {
     try {
@@ -69,6 +71,9 @@ function App(): React.JSX.Element {
         setLastUpdated(data.lastUpdated);
         if (data.lastChecked) {
           setLastChecked(data.lastChecked);
+        }
+        if (data.developer) {
+          setDeveloper(data.developer);
         }
       }
     } catch (error) {
@@ -90,6 +95,9 @@ function App(): React.JSX.Element {
       setLastUpdated(data.lastUpdated);
       if (data.lastChecked) {
         setLastChecked(data.lastChecked);
+      }
+      if (data.developer) {
+        setDeveloper(data.developer);
       }
 
       // Cache the data
@@ -239,7 +247,7 @@ function App(): React.JSX.Element {
         <Image source={LOGO_IMAGE} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Anna University COE Notifications</Text>
-          <Text style={styles.headerSubtitle}>DEVELOPED BY K.S.PRAVEEN Cse 2nd Year AURCM MADURAI</Text>
+          <Text style={styles.headerSubtitle}>DEVELOPED BY {developer.toUpperCase()}</Text>
           <Text style={styles.logoAttribution}>©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES</Text>
         </View>
       </View>
