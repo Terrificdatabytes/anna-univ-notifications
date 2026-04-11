@@ -21,6 +21,9 @@ concurrency:
   group: fetch-notifications
   cancel-in-progress: false
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   fetch:
     runs-on: ubuntu-latest
@@ -123,10 +126,13 @@ jobs:
             git add data/notifications.json
             if ! git diff --cached --quiet; then
               git commit -m "Update notifications - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-              # Rebase onto any concurrent pushes, then retry push up to 3 times
+              # Rebase onto any concurrent pushes, then retry push up to 3 times.
+              # Use -X ours so conflicts in notifications.json always resolve to
+              # our freshly-scraped version (a full snapshot, not incremental).
               PUSHED=false
               for attempt in 1 2 3; do
-                if git pull --rebase && git push; then
+                git rebase --abort 2>/dev/null || true
+                if git pull --rebase -X ours && git push; then
                   PUSHED=true
                   break
                 fi
