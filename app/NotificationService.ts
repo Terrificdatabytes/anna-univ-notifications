@@ -130,7 +130,7 @@ export class NotificationService {
   static async checkForNewNotifications(): Promise<void> {
     try {
       // Fetch latest notifications
-      const response = await fetch(NOTIFICATIONS_URL);
+      const response = await fetch(`${NOTIFICATIONS_URL}?t=${Date.now()}`);
       if (!response.ok) {
         console.error('Failed to fetch notifications:', response.status);
         return;
