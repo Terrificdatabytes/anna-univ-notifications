@@ -49,7 +49,11 @@ interface NotificationData {
   lastUpdated: string;
   lastChecked?: string | null;
   count: number;
+  appTitle?: string;
   developer?: string;
+  copyright?: string;
+  footerText?: string;
+  footerSubtext?: string;
 }
 
 function App(): React.JSX.Element {
@@ -60,7 +64,11 @@ function App(): React.JSX.Element {
   const [lastChecked, setLastChecked] = useState<string>('');
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+  const [appTitle, setAppTitle] = useState<string>('Anna University COE Notifications');
   const [developer, setDeveloper] = useState<string>('K.S.PRAVEEN Cse 2nd Year AURCM MADURAI');
+  const [copyright, setCopyright] = useState<string>('©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES');
+  const [footerText, setFooterText] = useState<string>('Developed by K.S.PRAVEEN (terrificdatabytes)');
+  const [footerSubtext, setFooterSubtext] = useState<string>('2nd year CSE, Anna University Regional Campus Madurai');
 
   const loadCachedNotifications = async () => {
     try {
@@ -74,6 +82,18 @@ function App(): React.JSX.Element {
         }
         if (data.developer) {
           setDeveloper(data.developer);
+        }
+        if (data.appTitle) {
+          setAppTitle(data.appTitle);
+        }
+        if (data.copyright) {
+          setCopyright(data.copyright);
+        }
+        if (data.footerText) {
+          setFooterText(data.footerText);
+        }
+        if (data.footerSubtext) {
+          setFooterSubtext(data.footerSubtext);
         }
       }
     } catch (error) {
@@ -98,6 +118,18 @@ function App(): React.JSX.Element {
       }
       if (data.developer) {
         setDeveloper(data.developer);
+      }
+      if (data.appTitle) {
+        setAppTitle(data.appTitle);
+      }
+      if (data.copyright) {
+        setCopyright(data.copyright);
+      }
+      if (data.footerText) {
+        setFooterText(data.footerText);
+      }
+      if (data.footerSubtext) {
+        setFooterSubtext(data.footerSubtext);
       }
 
       // Cache the data
@@ -246,9 +278,9 @@ function App(): React.JSX.Element {
       <View style={styles.headerTop}>
         <Image source={LOGO_IMAGE} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Anna University COE Notifications</Text>
+          <Text style={styles.headerTitle}>{appTitle}</Text>
           <Text style={styles.headerSubtitle}>DEVELOPED BY {developer.toUpperCase()}</Text>
-          <Text style={styles.logoAttribution}>©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES</Text>
+          <Text style={styles.logoAttribution}>{copyright}</Text>
         </View>
       </View>
       {lastUpdated && (
@@ -274,10 +306,10 @@ function App(): React.JSX.Element {
   const renderFooter = () => (
     <View style={styles.footerContainer}>
       <Text style={styles.footerText}>
-        Developed by K.S.PRAVEEN (terrificdatabytes)
+        {footerText}
       </Text>
       <Text style={styles.footerSubtext}>
-        2nd year CSE, Anna University Regional Campus Madurai
+        {footerSubtext}
       </Text>
     </View>
   );
