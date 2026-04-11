@@ -9,9 +9,12 @@ on:
         required: false
         default: '1'
         type: string
-  # Failsafe: if the chain ever breaks (e.g. GitHub outage), this restarts it
+  # Failsafe: if the chain ever breaks (e.g. GitHub outage), this restarts it.
+  # Every 5 min (GitHub minimum) limits the max gap to ~5 min instead of ~60 min.
+  # The concurrency group cancels any queued cron run when the chain dispatches,
+  # so there are no duplicate runs while the chain is healthy.
   schedule:
-    - cron: '0 * * * *'   # top of every hour — only fires if no chain is running
+    - cron: '*/5 * * * *'   # every 5 minutes — only fires if no chain is running
 
 # Prevent overlapping runs from committing conflicting data
 concurrency:
@@ -33,7 +36,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Display run info
         run: |
@@ -120,10 +123,24 @@ jobs:
             git add data/notifications.json
             if ! git diff --cached --quiet; then
               git commit -m "Update notifications - $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-              git push
-              echo "   ✓ Committed and pushed."
-              # Roll forward the baseline for the next iteration
-              cp data/notifications.json data/notifications.json.old
+              # Rebase onto any concurrent pushes, then retry push up to 3 times
+              PUSHED=false
+              for attempt in 1 2 3; do
+                if git pull --rebase && git push; then
+                  PUSHED=true
+                  break
+                fi
+                echo "   ⚠ Push attempt ${attempt} failed — retrying in 5s…"
+                sleep 5
+              done
+              if [ "$PUSHED" = "true" ]; then
+                echo "   ✓ Committed and pushed."
+                # Roll forward the baseline for the next iteration
+                cp data/notifications.json data/notifications.json.old
+              else
+                echo "   ✗ Push failed after 3 attempts — will retry next iteration."
+                git rebase --abort 2>/dev/null || true
+              fi
             fi
 
             # ── Sleep for remainder of the 60 s window ─────────────────────────
