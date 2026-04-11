@@ -27,8 +27,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import {NotificationService} from './NotificationService';
-import {UpdateService, UpdateInfo} from './UpdateService';
-import UpdateNotification from './UpdateNotification';
+
 
 const THEME_COLOR = '#37B3B3';
 const LOGO_IMAGE = require('./assets/images/anna-university3770.jpg');
@@ -107,8 +106,6 @@ function App(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [lastChecked, setLastChecked] = useState<string>('');
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
-  const [showUpdateBanner, setShowUpdateBanner] = useState(false);
   const [appTitle, setAppTitle] = useState<string>('Anna University COE Notifications');
   const [developer, setDeveloper] = useState<string>('K.S.PRAVEEN Cse 2nd Year AURCM MADURAI');
   const [copyright, setCopyright] = useState<string>('©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES');
@@ -197,19 +194,6 @@ function App(): React.JSX.Element {
     }
   };
 
-  const checkForAppUpdate = async () => {
-    try {
-      const update = await UpdateService.checkForUpdate();
-      if (update && update.available) {
-        setUpdateInfo(update);
-        setShowUpdateBanner(true);
-        console.log('App update available:', update.latestVersion);
-      }
-    } catch (error) {
-      console.error('Error checking for app update:', error);
-    }
-  };
-
   const initializeNotifications = async () => {
     await NotificationService.initialize();
     await NotificationService.requestPermission();
@@ -263,7 +247,6 @@ function App(): React.JSX.Element {
   useEffect(() => {
     initializeNotifications();
     const unsubscribe = setupNotificationHandlers();
-    checkForAppUpdate(); // Check for app updates on startup
 
     // Listen for app state changes to check for new notifications
     const subscription = AppState.addEventListener(
@@ -387,12 +370,6 @@ function App(): React.JSX.Element {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={THEME_COLOR} />
-      {showUpdateBanner && updateInfo && (
-        <UpdateNotification
-          updateInfo={updateInfo}
-          onDismiss={() => setShowUpdateBanner(false)}
-        />
-      )}
       {renderHeader()}
       <FlatList
         data={notifications}
