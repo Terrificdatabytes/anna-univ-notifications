@@ -7,7 +7,7 @@
  * @format
  */
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import {
   SafeAreaView,
   FlatList,
@@ -22,6 +22,7 @@ import {
   AppState,
   AppStateStatus,
   Image,
+  Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
@@ -54,7 +55,51 @@ interface NotificationData {
   copyright?: string;
   footerText?: string;
   footerSubtext?: string;
+  marqueeText?: string;
 }
+
+const MarqueeText = ({
+  text,
+  textStyle,
+}: {
+  text: string;
+  textStyle?: object;
+}) => {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [textWidth, setTextWidth] = useState(0);
+  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => {
+    if (containerWidth > 0 && textWidth > 0) {
+      translateX.setValue(containerWidth);
+      animRef.current = Animated.loop(
+        Animated.timing(translateX, {
+          toValue: -textWidth,
+          duration: (containerWidth + textWidth) * 12,
+          useNativeDriver: true,
+        }),
+      );
+      animRef.current.start();
+    }
+    return () => {
+      animRef.current?.stop();
+    };
+  }, [containerWidth, textWidth, translateX]);
+
+  return (
+    <View
+      style={styles.marqueeContainer}
+      onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}>
+      <Animated.Text
+        style={[textStyle, {transform: [{translateX}]}]}
+        numberOfLines={1}
+        onLayout={e => setTextWidth(e.nativeEvent.layout.width)}>
+        {text}
+      </Animated.Text>
+    </View>
+  );
+};
 
 function App(): React.JSX.Element {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -69,6 +114,9 @@ function App(): React.JSX.Element {
   const [copyright, setCopyright] = useState<string>('©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES');
   const [footerText, setFooterText] = useState<string>('Developed by K.S.PRAVEEN (terrificdatabytes)');
   const [footerSubtext, setFooterSubtext] = useState<string>('2nd year CSE, Anna University Regional Campus Madurai');
+  const [marqueeText, setMarqueeText] = useState<string>(
+    '📢 Welcome to Anna University COE Notifications | Stay updated with the latest exam notifications | Visit coe.annauniv.edu for more details',
+  );
 
   const loadCachedNotifications = async () => {
     try {
@@ -94,6 +142,9 @@ function App(): React.JSX.Element {
         }
         if (data.footerSubtext) {
           setFooterSubtext(data.footerSubtext);
+        }
+        if (data.marqueeText) {
+          setMarqueeText(data.marqueeText);
         }
       }
     } catch (error) {
@@ -130,6 +181,9 @@ function App(): React.JSX.Element {
       }
       if (data.footerSubtext) {
         setFooterSubtext(data.footerSubtext);
+      }
+      if (data.marqueeText) {
+        setMarqueeText(data.marqueeText);
       }
 
       // Cache the data
@@ -293,6 +347,9 @@ function App(): React.JSX.Element {
           Last checked: {formatDate(lastChecked)}
         </Text>
       )}
+      {marqueeText ? (
+        <MarqueeText text={marqueeText} textStyle={styles.marqueeText} />
+      ) : null}
     </View>
   );
 
@@ -414,6 +471,18 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginTop: 2,
     opacity: 0.7,
+  },
+  marqueeContainer: {
+    overflow: 'hidden',
+    marginTop: 8,
+    height: 18,
+  },
+  marqueeText: {
+    fontSize: 12,
+    color: '#ffffff',
+    opacity: 0.95,
+    fontStyle: 'italic',
+    width: 9999,
   },
   listContent: {
     padding: 16,
