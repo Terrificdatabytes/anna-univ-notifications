@@ -9,9 +9,12 @@ on:
         required: false
         default: '1'
         type: string
-  # Failsafe: if the chain ever breaks (e.g. GitHub outage), this restarts it
+  # Failsafe: if the chain ever breaks (e.g. GitHub outage), this restarts it.
+  # Every 5 min (GitHub minimum) limits the max gap to ~5 min instead of ~60 min.
+  # The concurrency group cancels any queued cron run when the chain dispatches,
+  # so there are no duplicate runs while the chain is healthy.
   schedule:
-    - cron: '0 * * * *'   # top of every hour — only fires if no chain is running
+    - cron: '*/5 * * * *'   # every 5 minutes — only fires if no chain is running
 
 # Prevent overlapping runs from committing conflicting data
 concurrency:
