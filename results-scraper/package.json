@@ -1,0 +1,13 @@
+{
+  "name": "anna-univ-results-scraper",
+  "version": "1.0.0",
+  "description": "Results scraper for Anna University (scraper code injected at runtime via SCRAPER_SCRIPT secret)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.15.0"
+  },
+  "type": "module"
+}

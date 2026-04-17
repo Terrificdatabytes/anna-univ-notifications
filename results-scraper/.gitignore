@@ -1,0 +1,8 @@
+# Scraper code is injected at runtime from the SCRAPER_SCRIPT secret — never commit it
+index.js
+
+# Downloaded HTML pages stay in artifacts, not in the repo
+output/
+
+node_modules/
+package-lock.json

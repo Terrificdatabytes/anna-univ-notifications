@@ -5,6 +5,10 @@ scripts/node_modules/
 scripts/package-lock.json
 worker/node_modules/
 worker/package-lock.json
+results-scraper/node_modules/
+results-scraper/package-lock.json
+results-scraper/index.js
+results-scraper/output/
 
 # App
 app/node_modules/

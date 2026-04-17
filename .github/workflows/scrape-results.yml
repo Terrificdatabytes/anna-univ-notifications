@@ -1,0 +1,132 @@
+name: Scrape Results
+
+# ──────────────────────────────────────────────────────────────────────────────
+# This workflow is dispatched automatically by fetch-notifications.yml whenever
+# a new Anna University notification is detected.  It injects your private
+# scraper code from the SCRAPER_SCRIPT secret, runs it, and uploads every HTML
+# page it downloads as a GitHub Actions artifact.
+#
+# Required secrets
+# ────────────────
+# SCRAPER_SCRIPT   – Your scraper's index.js base64-encoded.
+#                    Generate with:  base64 -w 0 your-scraper.js
+#                    (macOS/BSD):    base64 -i your-scraper.js | tr -d '\n'
+#
+# SCRAPER_USERNAME – Portal login username (available as env var inside scraper)
+# SCRAPER_PASSWORD – Portal login password (available as env var inside scraper)
+#
+# Optional: add any other secrets your scraper needs and expose them in the
+# "Run results scraper" step's env block below.
+#
+# Scraper contract
+# ────────────────
+# Your index.js must write all downloaded HTML files under  output/
+# e.g.  output/result_roll123.html , output/result_roll456.html …
+# Everything in output/ is uploaded as the artifact.
+# ──────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      notification_id:
+        description: 'Notification ID that triggered this scrape'
+        required: false
+        default: ''
+        type: string
+      notification_title:
+        description: 'Notification title that triggered this scrape'
+        required: false
+        default: ''
+        type: string
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Display run info
+        run: |
+          echo "================================================"
+          echo "TRIGGERED BY : ${{ inputs.notification_title || '(manual trigger)' }}"
+          echo "NOTIFICATION : ${{ inputs.notification_id   || 'N/A' }}"
+          echo "START TIME   : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "================================================"
+
+      # ── Inject scraper code from secret ─────────────────────────────────────
+      # Your scraper is never stored in this repository.  It lives only in the
+      # SCRAPER_SCRIPT secret and is decoded here at runtime.
+      - name: Inject scraper from SCRAPER_SCRIPT secret
+        env:
+          SCRAPER_SCRIPT: ${{ secrets.SCRAPER_SCRIPT }}
+        run: |
+          if [ -z "$SCRAPER_SCRIPT" ]; then
+            echo "❌ ERROR: SCRAPER_SCRIPT secret is not set."
+            echo ""
+            echo "Encode your scraper and add it as a repository secret:"
+            echo "  Linux : base64 -w 0 your-scraper.js"
+            echo "  macOS : base64 -i  your-scraper.js | tr -d '\\n'"
+            echo ""
+            echo "Then go to  Settings → Secrets and variables → Actions"
+            echo "and create a secret named  SCRAPER_SCRIPT  with that value."
+            exit 1
+          fi
+          echo "$SCRAPER_SCRIPT" | base64 -d > results-scraper/index.js
+          echo "✓ Scraper injected."
+
+      - name: Install scraper dependencies
+        run: cd results-scraper && npm install
+
+      # ── Run scraper ──────────────────────────────────────────────────────────
+      # Environment variables your scraper can read:
+      #   SCRAPER_USERNAME      – portal login username
+      #   SCRAPER_PASSWORD      – portal login password
+      #   NOTIFICATION_ID       – ID of the notification that triggered this run
+      #   NOTIFICATION_TITLE    – Title of that notification
+      #   OUTPUT_DIR            – Absolute path where HTML files must be saved
+      - name: Run results scraper
+        env:
+          SCRAPER_USERNAME: ${{ secrets.SCRAPER_USERNAME }}
+          SCRAPER_PASSWORD: ${{ secrets.SCRAPER_PASSWORD }}
+          NOTIFICATION_ID: ${{ inputs.notification_id }}
+          NOTIFICATION_TITLE: ${{ inputs.notification_title }}
+          OUTPUT_DIR: ${{ github.workspace }}/results-scraper/output
+        run: |
+          mkdir -p results-scraper/output
+          cd results-scraper && npm start
+
+      # ── Upload HTML pages as artifact ────────────────────────────────────────
+      - name: Upload HTML results as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # Artifact name includes the notification ID and run number for easy lookup
+          name: results-${{ inputs.notification_id || 'manual' }}-run${{ github.run_number }}
+          path: results-scraper/output/
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "================================================"
+          echo "SCRAPE COMPLETE"
+          echo "End time  : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          HTML_COUNT=$(find results-scraper/output -name '*.html' 2>/dev/null | wc -l)
+          echo "HTML files: ${HTML_COUNT}"
+          echo "Artifact  : results-${{ inputs.notification_id || 'manual' }}-run${{ github.run_number }}"
+          echo "================================================"
