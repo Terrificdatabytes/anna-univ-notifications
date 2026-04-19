@@ -102,6 +102,17 @@ jobs:
           python3 scripts/process_notification.py "$FIRST_ID" data/notifications.json
           echo "✓ Script completed successfully"
 
+      # ── Upload all output artifacts ────────────────────────────────────────
+      - name: Upload output artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: output-artifacts
+          path: |
+            result_pages.zip
+            *.csv
+          if-no-files-found: warn
+
       - name: Summary
         run: |
           echo "================================================"
