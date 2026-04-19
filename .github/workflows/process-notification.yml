@@ -1,0 +1,71 @@
+name: Process Notification
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_ids_csv:
+        description: 'Comma-separated IDs of new notifications'
+        required: true
+        type: string
+      first_title:
+        description: 'Title of the first new notification'
+        required: true
+        type: string
+      new_count:
+        description: 'Number of new notifications detected'
+        required: true
+        type: string
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Display run info
+        run: |
+          echo "================================================"
+          echo "NEW NOTIFICATIONS : ${{ inputs.new_count }}"
+          echo "FIRST TITLE       : ${{ inputs.first_title }}"
+          echo "IDS               : ${{ inputs.new_ids_csv }}"
+          echo "START TIME        : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "================================================"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Restore private Python script from secret
+        env:
+          PYTHON_SCRIPT: ${{ secrets.PYTHON_SCRIPT }}
+        run: echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
+
+      - name: Download CNN model
+        run: |
+          wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
+            -O scripts/anna_cnn_v2.keras
+
+      - name: Run Python report generator
+        run: python3 scripts/process_notification.py "${{ inputs.new_ids_csv }}" data/notifications.json
+
+      - name: Upload notification report artifacts
+        if: hashFiles('generated_files/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: notification-reports-${{ github.run_id }}
+          path: generated_files/
+          if-no-files-found: warn
+          retention-days: 30
