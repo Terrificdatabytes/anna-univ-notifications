@@ -61,17 +61,25 @@ jobs:
           python3 scripts/process_notification.py
           echo "✓ Script completed successfully"
 
-      # ── Upload all output artifacts ────────────────────────────────────────
-      - name: Upload output artifacts
+      # ── Upload CSV files as one artifact ──────────────────────────────────
+      - name: Upload CSV artifacts
         if: ${{ !inputs.dry_run && always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: scraper-output
+          name: csv-output
           path: |
             anna_results.csv
             anna_summary_*.csv
             students.csv
-            result_pages.zip
+          if-no-files-found: warn
+
+      # ── Upload result HTML pages folder as one artifact ───────────────────
+      - name: Upload result pages
+        if: ${{ !inputs.dry_run && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: result-pages
+          path: result_pages/
           if-no-files-found: warn
 
       - name: Summary
