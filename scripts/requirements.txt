@@ -1,1 +1,7 @@
-# Add your dependencies here
+requests
+beautifulsoup4
+lxml
+opencv-python-headless
+Pillow
+numpy
+tensorflow
