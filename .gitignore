@@ -22,6 +22,9 @@ app/ios/build/
 # Backup files
 data/notifications.json.old
 
+# Private Python script — stored as PYTHON_SCRIPT GitHub secret, decoded at runtime
+scripts/process_notification.py
+
 # OS
 .DS_Store
 
