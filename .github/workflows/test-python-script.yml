@@ -45,6 +45,35 @@ jobs:
           wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
             -O scripts/anna_cnn_v2.keras
 
+      # ── Patch Colab-specific imports so the script runs outside Colab ─────
+      - name: Patch google.colab stub
+        run: |
+          python3 << 'EOF'
+          with open('scripts/process_notification.py', 'r') as f:
+              content = f.read()
+
+          stub = (
+              "try:\n"
+              "    from google.colab import files as colab_files\n"
+              "except ImportError:\n"
+              "    class _ColabFilesStub:\n"
+              "        def download(self, *a, **kw):\n"
+              "            pass\n"
+              "    colab_files = _ColabFilesStub()"
+          )
+
+          patched = content.replace(
+              "from google.colab import files as colab_files", stub
+          )
+
+          if patched == content:
+              print("ℹ No google.colab import found — nothing to patch")
+          else:
+              with open('scripts/process_notification.py', 'w') as f:
+                  f.write(patched)
+              print("✓ Patched google.colab import with no-op stub")
+          EOF
+
       # ── Verify it is syntactically valid Python ────────────────────────────
       - name: Syntax-check decoded script
         run: |
