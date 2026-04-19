@@ -63,6 +63,11 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r scripts/requirements.txt
 
+      - name: Restore private Python script from secret
+        env:
+          PYTHON_SCRIPT: ${{ secrets.PYTHON_SCRIPT }}
+        run: echo "$PYTHON_SCRIPT" | base64 -d > scripts/process_notification.py
+
       # ──────────────────────────────────────────────────────────────────────────
       # MAIN LOOP — polls coe.annauniv.edu every 60 s for 55 minutes.
       # Stops at 55 min so the chaining step can fire before GitHub's 65-min limit.
