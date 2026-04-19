@@ -68,6 +68,11 @@ jobs:
           PYTHON_SCRIPT: ${{ secrets.PYTHON_SCRIPT }}
         run: echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
 
+      - name: Download CNN model
+        run: |
+          wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
+            -O scripts/anna_cnn_v2.keras
+
       # ──────────────────────────────────────────────────────────────────────────
       # MAIN LOOP — polls coe.annauniv.edu every 60 s for 55 minutes.
       # Stops at 55 min so the chaining step can fire before GitHub's 65-min limit.
