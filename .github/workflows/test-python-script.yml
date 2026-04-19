@@ -39,6 +39,12 @@ jobs:
           echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
           echo "✓ Decoded successfully ($(wc -c < scripts/process_notification.py) bytes)"
 
+      # ── Download CNN model (required by process_notification.py) ──────────
+      - name: Download CNN model
+        run: |
+          wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
+            -O scripts/anna_cnn_v2.keras
+
       # ── Verify it is syntactically valid Python ────────────────────────────
       - name: Syntax-check decoded script
         run: |
