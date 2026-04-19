@@ -45,62 +45,34 @@ jobs:
           wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
             -O scripts/anna_cnn_v2.keras
 
-      # ── Patch Colab-specific imports so the script runs outside Colab ─────
-      - name: Patch google.colab stub
-        run: |
-          python3 << 'EOF'
-          with open('scripts/process_notification.py', 'r') as f:
-              content = f.read()
-
-          stub = (
-              "try:\n"
-              "    from google.colab import files as colab_files\n"
-              "except ImportError:\n"
-              "    class _ColabFilesStub:\n"
-              "        def download(self, *a, **kw):\n"
-              "            pass\n"
-              "    colab_files = _ColabFilesStub()"
-          )
-
-          patched = content.replace(
-              "from google.colab import files as colab_files", stub
-          )
-
-          if patched == content:
-              print("ℹ No google.colab import found — nothing to patch")
-          else:
-              with open('scripts/process_notification.py', 'w') as f:
-                  f.write(patched)
-              print("✓ Patched google.colab import with no-op stub")
-          EOF
-
-      # ── Verify it is syntactically valid Python ────────────────────────────
+      # ── Syntax-check decoded script ────────────────────────────────────────
       - name: Syntax-check decoded script
         run: |
           python3 -m py_compile scripts/process_notification.py
           echo "✓ Syntax OK"
 
       # ── Optionally run the script against current notification data ────────
-      - name: Run script against live notification data
+      - name: Run scraper script
         if: ${{ !inputs.dry_run }}
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          if [ ! -f data/notifications.json ]; then
-            echo "⚠ data/notifications.json not found — skipping live run."
-            exit 0
-          fi
-
-          # Pick the most recent notification ID for a smoke-test
-          FIRST_ID=$(jq -r '.notifications[0].id // empty' data/notifications.json)
-          if [ -z "$FIRST_ID" ]; then
-            echo "⚠ No notifications found in data/notifications.json — skipping live run."
-            exit 0
-          fi
-
-          echo "Running process_notification.py with id: ${FIRST_ID}"
-          python3 scripts/process_notification.py "$FIRST_ID" data/notifications.json
+          echo "Running process_notification.py..."
+          python3 scripts/process_notification.py
           echo "✓ Script completed successfully"
+
+      # ── Upload all output artifacts ────────────────────────────────────────
+      - name: Upload output artifacts
+        if: ${{ !inputs.dry_run && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraper-output
+          path: |
+            anna_results.csv
+            anna_summary_*.csv
+            students.csv
+            result_pages.zip
+          if-no-files-found: warn
 
       - name: Summary
         run: |
