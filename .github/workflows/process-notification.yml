@@ -48,18 +48,55 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r scripts/requirements.txt
 
+      # ── Decode the gzip-compressed, base64-encoded secret ──────────────────
       - name: Restore private Python script from secret
         env:
           PYTHON_SCRIPT: ${{ secrets.PYTHON_SCRIPT }}
-        run: echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
+        run: |
+          echo "Decoding PYTHON_SCRIPT secret…"
+          echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
+          echo "✓ Decoded successfully ($(wc -c < scripts/process_notification.py) bytes)"
 
+      # ── Download CNN model (required by process_notification.py) ──────────
       - name: Download CNN model
         run: |
           wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
             -O scripts/anna_cnn_v2.keras
 
+      # ── Syntax-check decoded script ────────────────────────────────────────
+      - name: Syntax-check decoded script
+        run: |
+          python3 -m py_compile scripts/process_notification.py
+          echo "✓ Syntax OK"
+
       - name: Run Python report generator
-        run: python3 scripts/process_notification.py "${{ inputs.new_ids_csv }}" data/notifications.json
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "Running process_notification.py..."
+          python3 scripts/process_notification.py "${{ inputs.new_ids_csv }}" data/notifications.json
+          echo "✓ Script completed successfully"
+
+      # ── Upload CSV files as one artifact ──────────────────────────────────
+      - name: Upload CSV artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: csv-output-${{ github.run_id }}
+          path: |
+            anna_results.csv
+            anna_summary_*.csv
+            students.csv
+          if-no-files-found: warn
+
+      # ── Upload result HTML pages folder as one artifact ───────────────────
+      - name: Upload result pages
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: result-pages-${{ github.run_id }}
+          path: result_pages/
+          if-no-files-found: warn
 
       - name: Upload notification report artifacts
         if: hashFiles('generated_files/**') != ''
@@ -69,3 +106,13 @@ jobs:
           path: generated_files/
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "================================================"
+          echo "PROCESS COMPLETE"
+          echo "NEW NOTIFICATIONS : ${{ inputs.new_count }}"
+          echo "FIRST TITLE       : ${{ inputs.first_title }}"
+          echo "IDS               : ${{ inputs.new_ids_csv }}"
+          echo "================================================"
