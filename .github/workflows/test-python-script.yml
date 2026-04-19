@@ -1,0 +1,75 @@
+name: Test Python Script Secret
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run — decode & syntax-check only, skip live execution'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test-python-script:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      # ── Decode the gzip-compressed, base64-encoded secret ──────────────────
+      - name: Restore private Python script from secret
+        env:
+          PYTHON_SCRIPT: ${{ secrets.PYTHON_SCRIPT }}
+        run: |
+          echo "Decoding PYTHON_SCRIPT secret…"
+          echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
+          echo "✓ Decoded successfully ($(wc -c < scripts/process_notification.py) bytes)"
+
+      # ── Verify it is syntactically valid Python ────────────────────────────
+      - name: Syntax-check decoded script
+        run: |
+          python3 -m py_compile scripts/process_notification.py
+          echo "✓ Syntax OK"
+
+      # ── Optionally run the script against current notification data ────────
+      - name: Run script against live notification data
+        if: ${{ !inputs.dry_run }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ ! -f data/notifications.json ]; then
+            echo "⚠ data/notifications.json not found — skipping live run."
+            exit 0
+          fi
+
+          # Pick the most recent notification ID for a smoke-test
+          FIRST_ID=$(jq -r '.notifications[0].id // empty' data/notifications.json)
+          if [ -z "$FIRST_ID" ]; then
+            echo "⚠ No notifications found in data/notifications.json — skipping live run."
+            exit 0
+          fi
+
+          echo "Running process_notification.py with id: ${FIRST_ID}"
+          python3 scripts/process_notification.py "$FIRST_ID" data/notifications.json
+          echo "✓ Script completed successfully"
+
+      - name: Summary
+        run: |
+          echo "================================================"
+          echo "TEST COMPLETE"
+          echo "Dry run : ${{ inputs.dry_run }}"
+          echo "================================================"
