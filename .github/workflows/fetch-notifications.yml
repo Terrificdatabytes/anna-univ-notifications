@@ -66,7 +66,7 @@ jobs:
       - name: Restore private Python script from secret
         env:
           PYTHON_SCRIPT: ${{ secrets.PYTHON_SCRIPT }}
-        run: echo "$PYTHON_SCRIPT" | base64 -d > scripts/process_notification.py
+        run: echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
 
       # ──────────────────────────────────────────────────────────────────────────
       # MAIN LOOP — polls coe.annauniv.edu every 60 s for 55 minutes.
