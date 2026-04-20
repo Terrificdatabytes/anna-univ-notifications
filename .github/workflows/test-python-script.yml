@@ -9,9 +9,6 @@ on:
         default: false
         type: boolean
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   test-python-script:
     runs-on: ubuntu-latest
@@ -20,10 +17,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -64,7 +61,7 @@ jobs:
       # ── Upload CSV files as one artifact ──────────────────────────────────
       - name: Upload CSV artifacts
         if: ${{ !inputs.dry_run && always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: csv-output
           path: |
@@ -76,7 +73,7 @@ jobs:
       # ── Upload result HTML pages folder as one artifact ───────────────────
       - name: Upload result pages
         if: ${{ !inputs.dry_run && always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: result-pages
           path: result_pages/
