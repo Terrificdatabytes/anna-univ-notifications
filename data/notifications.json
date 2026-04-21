@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "56b76aef",
+      "title": "Kind attention to institutions: The web portal is open for applying for revaluation of answer scripts (Nov./Dec. 2025 Examinations – UG/PG/Ph.D.) has been extended until 24-04-2026, 12:00 PM.Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/2025_nd/ND25_RV_PROC.pdf",
+      "isNew": true
+    },
+    {
       "id": "d04a99bf",
       "title": "Kind Attention to the Institutions:- April/May 2026 - Practical Examinations Schedule-.Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/2026_am/am26_Practical_Schedule.pdf",
@@ -10,12 +16,6 @@
       "id": "e65dc2dd",
       "title": "Distance Education: August / September 2025 Examinations Revaluation Result Published.",
       "link": null,
-      "isNew": true
-    },
-    {
-      "id": "56b76aef",
-      "title": "Kind attention to institutions: The web portal is open for applying for revaluation of answer scripts (Nov./Dec. 2025 Examinations – UG/PG/Ph.D.) has been extended until 24-04-2026, 12:00 PM.Click Here",
-      "link": "https://coe.annauniv.edu/aucoe/pdf/2025_nd/ND25_RV_PROC.pdf",
       "isNew": true
     },
     {
@@ -31,7 +31,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-04-21T12:05:11.240Z",
+  "lastUpdated": "2026-04-21T12:06:11.747Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
   "count": 5
 }
