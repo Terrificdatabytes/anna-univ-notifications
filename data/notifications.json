@@ -1,9 +1,9 @@
 {
   "notifications": [
     {
-      "id": "4e69c4f8",
-      "title": "Distance Education : - Notification for Payment of Examinations Fees (Feb./ Mar. 2026) - Reg. Registration from 30-04-2026 to 06-05-2026.",
-      "link": null,
+      "id": "cdede612",
+      "title": "Distance Education : - Notification for Payment of Examinations Fees (Feb./ Mar. 2026) - Reg. Registration from 30-04-2026 to 06-05-2026.Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/distance/feb_2026/distance_feb_mar2026.pdf",
       "isNew": true
     },
     {
@@ -37,7 +37,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-04-30T07:00:31.255Z",
+  "lastUpdated": "2026-04-30T07:01:31.002Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
   "count": 6
 }
