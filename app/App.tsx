@@ -1,9 +1,6 @@
 /**
  * Anna University Notifications App
  *
- * Push notifications are delivered via Firebase Cloud Messaging (FCM).
- * Users receive notifications automatically when the app is installed.
- *
  * @format
  */
 
@@ -24,7 +21,6 @@ import {
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import messaging from '@react-native-firebase/messaging';
 import {NotificationService} from './NotificationService';
 import {UpdateService, UpdateInfo} from './UpdateService';
 import UpdateNotification from './UpdateNotification';
@@ -118,40 +114,8 @@ function App(): React.JSX.Element {
 
   const initializeNotifications = async () => {
     await NotificationService.initialize();
-    await NotificationService.requestPermission();
     // Check for new notifications on app start
     await NotificationService.checkForNewNotifications();
-  };
-
-  const setupNotificationHandlers = () => {
-    // Handle notification press when app is in foreground
-    const unsubscribeForeground = messaging().onMessage(async remoteMessage => {
-      console.log('Foreground message received:', remoteMessage);
-      // Refresh notifications when a new message arrives
-      fetchNotifications();
-    });
-
-    // Handle notification press when app is opened from background
-    messaging().onNotificationOpenedApp(async remoteMessage => {
-      console.log('Notification opened app from background:', remoteMessage);
-      Linking.openURL(COE_URL).catch(err =>
-        console.error('Error opening COE website:', err),
-      );
-    });
-
-    // Handle notification press when app was closed
-    messaging()
-      .getInitialNotification()
-      .then(remoteMessage => {
-        if (remoteMessage) {
-          console.log('App opened from quit state via notification:', remoteMessage);
-          Linking.openURL(COE_URL).catch(err =>
-            console.error('Error opening COE website:', err),
-          );
-        }
-      });
-
-    return unsubscribeForeground;
   };
 
   const handleAppStateChange = useCallback(
@@ -168,7 +132,6 @@ function App(): React.JSX.Element {
   // Initialize notification service and set up handlers
   useEffect(() => {
     initializeNotifications();
-    const unsubscribe = setupNotificationHandlers();
     checkForAppUpdate(); // Check for app updates on startup
 
     // Listen for app state changes to check for new notifications
@@ -178,9 +141,6 @@ function App(): React.JSX.Element {
     );
 
     return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
       subscription.remove();
     };
   }, [handleAppStateChange]);
