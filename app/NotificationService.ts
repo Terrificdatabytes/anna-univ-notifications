@@ -1,13 +1,17 @@
 /**
  * Notification Service
  * Handles push notifications for new Anna University notifications
- * 
+ *
  * Push notifications are delivered via Firebase Cloud Messaging (FCM).
  * Users receive notifications automatically when the app is installed and
  * notification permissions are granted.
+ *
+ * Local notifications (for offline-to-online transitions) are displayed
+ * using @notifee/react-native.
  */
 
 import messaging from '@react-native-firebase/messaging';
+import notifee, {AndroidImportance} from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Platform, PermissionsAndroid} from 'react-native';
 
@@ -17,6 +21,7 @@ const CACHE_KEY = 'anna_univ_notifications';
 const SEEN_IDS_KEY = 'seen_notification_ids';
 const FCM_TOKEN_KEY = 'fcm_token';
 const FCM_TOPIC = 'anna-univ-notifications';
+const NOTIFICATION_CHANNEL_ID = 'anna-univ-notifications-local';
 
 interface Notification {
   id: string;
@@ -33,7 +38,8 @@ interface NotificationData {
 
 export class NotificationService {
   /**
-   * Initialize Firebase messaging and subscribe to topic
+   * Initialize Firebase messaging and subscribe to topic.
+   * Also creates the local notification channel for Android.
    */
   static async initialize() {
     try {
@@ -43,6 +49,13 @@ export class NotificationService {
         console.log('Notification permission not granted');
         return;
       }
+
+      // Create Android notification channel for local notifications
+      await notifee.createChannel({
+        id: NOTIFICATION_CHANNEL_ID,
+        name: 'Anna University Notifications',
+        importance: AndroidImportance.HIGH,
+      });
 
       // Get FCM token
       const token = await messaging().getToken();
@@ -123,9 +136,10 @@ export class NotificationService {
   }
 
   /**
-   * Check for new notifications and update seen IDs
-   * Note: Push notifications are now handled by FCM server-side (GitHub Actions)
-   * This method updates the local cache and tracks seen notifications
+   * Check for new notifications and update seen IDs.
+   * Displays a local device notification when new notifications are found.
+   * Note: Push notifications are also handled by FCM server-side (GitHub Actions).
+   * This method covers the case where a user was offline and missed the push.
    */
   static async checkForNewNotifications(): Promise<void> {
     try {
@@ -139,11 +153,13 @@ export class NotificationService {
       const data: NotificationData = await response.json();
       const seenIds = await this.getSeenIds();
       let newCount = 0;
+      const newTitles: string[] = [];
 
       // Track which notifications are new (not seen before)
       for (const notification of data.notifications) {
         if (!seenIds.has(notification.id)) {
           newCount++;
+          newTitles.push(notification.title);
           seenIds.add(notification.id);
         }
       }
@@ -151,6 +167,21 @@ export class NotificationService {
       if (newCount > 0) {
         console.log(`Found ${newCount} new notification(s)`);
         await this.saveSeenIds(seenIds);
+
+        // Show a local device notification so the user is alerted even if
+        // they missed the server-side FCM push (e.g. were offline).
+        const body =
+          newCount === 1
+            ? newTitles[0]
+            : `${newCount} new notifications from Anna University COE`;
+        await notifee.displayNotification({
+          title: '🔔 New Anna University Notification',
+          body,
+          android: {
+            channelId: NOTIFICATION_CHANNEL_ID,
+            pressAction: {id: 'default'},
+          },
+        });
       }
 
       // Update cache
