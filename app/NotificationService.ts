@@ -51,11 +51,13 @@ export class NotificationService {
       }
 
       // Create Android notification channel for local notifications
-      await notifee.createChannel({
-        id: NOTIFICATION_CHANNEL_ID,
-        name: 'Anna University Notifications',
-        importance: AndroidImportance.HIGH,
-      });
+      if (Platform.OS === 'android') {
+        await notifee.createChannel({
+          id: NOTIFICATION_CHANNEL_ID,
+          name: 'Anna University Notifications',
+          importance: AndroidImportance.HIGH,
+        });
+      }
 
       // Get FCM token
       const token = await messaging().getToken();

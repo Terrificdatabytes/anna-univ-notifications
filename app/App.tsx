@@ -161,15 +161,7 @@ function App(): React.JSX.Element {
         await NotificationService.checkForNewNotifications();
         fetchNotifications();
         // Also check for app updates when internet may have been restored
-        try {
-          const update = await UpdateService.checkForUpdate();
-          if (update && update.available) {
-            setUpdateInfo(update);
-            setShowUpdateBanner(true);
-          }
-        } catch (error) {
-          console.error('Error checking for app update on foreground:', error);
-        }
+        checkForAppUpdate();
       }
     },
     [],
