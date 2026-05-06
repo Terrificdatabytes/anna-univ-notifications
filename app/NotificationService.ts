@@ -22,6 +22,8 @@ const SEEN_IDS_KEY = 'seen_notification_ids';
 const FCM_TOKEN_KEY = 'fcm_token';
 const FCM_TOPIC = 'anna-univ-notifications';
 const NOTIFICATION_CHANNEL_ID = 'anna-univ-notifications-local';
+const MULTI_NOTIFICATION_BODY = (count: number) =>
+  `${count} new notifications from Anna University COE`;
 
 interface Notification {
   id: string;
@@ -173,9 +175,7 @@ export class NotificationService {
         // Show a local device notification so the user is alerted even if
         // they missed the server-side FCM push (e.g. were offline).
         const body =
-          newCount === 1
-            ? newTitles[0]
-            : `${newCount} new notifications from Anna University COE`;
+          newCount === 1 ? newTitles[0] : MULTI_NOTIFICATION_BODY(newCount);
         await notifee.displayNotification({
           title: '🔔 New Anna University Notification',
           body,
