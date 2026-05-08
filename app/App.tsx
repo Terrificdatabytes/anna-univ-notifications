@@ -82,7 +82,8 @@ const normalizeUIText = (data: any): UITextConfig => ({
   header: {
     title: data?.header?.title || DEFAULT_UI_TEXT.header.title,
     subtitle: data?.header?.subtitle || '',
-    attribution: data?.header?.attribution || DEFAULT_UI_TEXT.header.attribution,
+    attribution:
+      data?.header?.attribution || DEFAULT_UI_TEXT.header.attribution,
   },
   footer: {
     primary: data?.footer?.primary || '',
@@ -166,7 +167,10 @@ function App(): React.JSX.Element {
       const data = await response.json();
       const normalizedData = normalizeUIText(data);
       setUiText(normalizedData);
-      await AsyncStorage.setItem(UI_TEXT_CACHE_KEY, JSON.stringify(normalizedData));
+      await AsyncStorage.setItem(
+        UI_TEXT_CACHE_KEY,
+        JSON.stringify(normalizedData),
+      );
     } catch (error) {
       console.error('Error fetching UI text:', error);
       // If fetch fails, cached UI text is already loaded
@@ -317,7 +321,9 @@ function App(): React.JSX.Element {
             <Text style={styles.headerSubtitle}>{uiText.header.subtitle}</Text>
           ) : null}
           {uiText.header.attribution ? (
-            <Text style={styles.logoAttribution}>{uiText.header.attribution}</Text>
+            <Text style={styles.logoAttribution}>
+              {uiText.header.attribution}
+            </Text>
           ) : null}
         </View>
       </View>
