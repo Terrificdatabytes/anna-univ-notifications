@@ -34,7 +34,10 @@ const LOGO_IMAGE = require('./assets/images/anna-university3770.jpg');
 // GitHub raw URL to fetch notifications - points to main branch data file
 const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
+const UI_TEXT_URL =
+  'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/ui-text.json';
 const CACHE_KEY = 'anna_univ_notifications';
+const UI_TEXT_CACHE_KEY = 'anna_univ_ui_text';
 const COE_URL = 'https://coe.annauniv.edu';
 
 interface Notification {
@@ -51,6 +54,42 @@ interface NotificationData {
   count: number;
 }
 
+interface UITextConfig {
+  header: {
+    title: string;
+    subtitle: string;
+    attribution: string;
+  };
+  footer: {
+    primary: string;
+    secondary: string;
+  };
+}
+
+const DEFAULT_UI_TEXT: UITextConfig = {
+  header: {
+    title: 'Anna University COE Notifications',
+    subtitle: '',
+    attribution: '©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES',
+  },
+  footer: {
+    primary: '',
+    secondary: '',
+  },
+};
+
+const normalizeUIText = (data: any): UITextConfig => ({
+  header: {
+    title: data?.header?.title || DEFAULT_UI_TEXT.header.title,
+    subtitle: data?.header?.subtitle || '',
+    attribution: data?.header?.attribution || DEFAULT_UI_TEXT.header.attribution,
+  },
+  footer: {
+    primary: data?.footer?.primary || '',
+    secondary: data?.footer?.secondary || '',
+  },
+});
+
 function App(): React.JSX.Element {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,6 +98,7 @@ function App(): React.JSX.Element {
   const [lastChecked, setLastChecked] = useState<string>('');
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+  const [uiText, setUiText] = useState<UITextConfig>(DEFAULT_UI_TEXT);
 
   const loadCachedNotifications = async () => {
     try {
@@ -100,6 +140,36 @@ function App(): React.JSX.Element {
     } finally {
       setLoading(false);
       setRefreshing(false);
+    }
+  };
+
+  const loadCachedUIText = async () => {
+    try {
+      const cached = await AsyncStorage.getItem(UI_TEXT_CACHE_KEY);
+      if (cached) {
+        const data = JSON.parse(cached);
+        setUiText(normalizeUIText(data));
+      }
+    } catch (error) {
+      console.error('Error loading cached UI text:', error);
+    }
+  };
+
+  const fetchUIText = async () => {
+    try {
+      const response = await fetch(UI_TEXT_URL);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const normalizedData = normalizeUIText(data);
+      setUiText(normalizedData);
+      await AsyncStorage.setItem(UI_TEXT_CACHE_KEY, JSON.stringify(normalizedData));
+    } catch (error) {
+      console.error('Error fetching UI text:', error);
+      // If fetch fails, cached UI text is already loaded
     }
   };
 
@@ -160,6 +230,7 @@ function App(): React.JSX.Element {
         // Check for new notifications when app comes to foreground
         await NotificationService.checkForNewNotifications();
         fetchNotifications();
+        fetchUIText();
       }
     },
     [],
@@ -188,12 +259,15 @@ function App(): React.JSX.Element {
   // Load notifications from cache on mount
   useEffect(() => {
     loadCachedNotifications();
+    loadCachedUIText();
     fetchNotifications();
+    fetchUIText();
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchNotifications();
+    fetchUIText();
   };
 
   const handleNotificationPress = (notification: Notification) => {
@@ -238,9 +312,13 @@ function App(): React.JSX.Element {
       <View style={styles.headerTop}>
         <Image source={LOGO_IMAGE} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerTextContainer}>
-          <Text style={styles.headerTitle}>Anna University COE Notifications</Text>
-          <Text style={styles.headerSubtitle}>DEVELOPED BY K.S.PRAVEEN Cse 2nd Year AURCM MADURAI</Text>
-          <Text style={styles.logoAttribution}>©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES</Text>
+          <Text style={styles.headerTitle}>{uiText.header.title}</Text>
+          {uiText.header.subtitle ? (
+            <Text style={styles.headerSubtitle}>{uiText.header.subtitle}</Text>
+          ) : null}
+          {uiText.header.attribution ? (
+            <Text style={styles.logoAttribution}>{uiText.header.attribution}</Text>
+          ) : null}
         </View>
       </View>
       {lastUpdated && (
@@ -265,12 +343,12 @@ function App(): React.JSX.Element {
 
   const renderFooter = () => (
     <View style={styles.footerContainer}>
-      <Text style={styles.footerText}>
-        Developed by K.S.PRAVEEN (terrificdatabytes)
-      </Text>
-      <Text style={styles.footerSubtext}>
-        2nd year CSE, Anna University Regional Campus Madurai
-      </Text>
+      {uiText.footer.primary ? (
+        <Text style={styles.footerText}>{uiText.footer.primary}</Text>
+      ) : null}
+      {uiText.footer.secondary ? (
+        <Text style={styles.footerSubtext}>{uiText.footer.secondary}</Text>
+      ) : null}
     </View>
   );
 
