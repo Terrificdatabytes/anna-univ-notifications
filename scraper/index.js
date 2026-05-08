@@ -13,6 +13,16 @@ const COE_URL = 'https://coe1.annauniv.edu/home/';
 const BASE_URL = 'https://coe.annauniv.edu';
 const OUTPUT_FILE = join(__dirname, '../data/notifications.json');
 
+// Permanent pinned notification shown at the top of every notification list.
+// Update the title/link whenever a new app version is released.
+const PINNED_NOTIFICATION = {
+  id: 'app-update-pinned',
+  title: '🔔 App Update Available! Download the latest version of Anna University Notifications from GitHub Releases for new features and improvements. Tap to download.',
+  link: 'https://github.com/Terrificdatabytes/anna-univ-notifications/releases/latest',
+  isNew: true,
+  pinned: true
+};
+
 /**
  * Generate MD5 hash for unique ID
  */
@@ -110,12 +120,15 @@ async function scrapeNotifications() {
       // ignore – no existing file or parse error
     }
 
+    // Prepend the permanent pinned notification so it always appears at the top
+    const allNotifications = [PINNED_NOTIFICATION, ...notifications];
+
     // Prepare output data
     const outputData = {
-      notifications,
+      notifications: allNotifications,
       lastUpdated: new Date().toISOString(),
       lastChecked,
-      count: notifications.length
+      count: allNotifications.length
     };
     
     // Ensure data directory exists

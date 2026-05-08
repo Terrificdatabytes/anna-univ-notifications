@@ -1,6 +1,13 @@
 {
   "notifications": [
     {
+      "id": "app-update-pinned",
+      "title": "🔔 App Update Available! Download the latest version of Anna University Notifications from GitHub Releases for new features and improvements. Tap to download.",
+      "link": "https://github.com/Terrificdatabytes/anna-univ-notifications/releases/latest",
+      "isNew": true,
+      "pinned": true
+    },
+    {
       "id": "cdede612",
       "title": "Distance Education : - Notification for Payment of Examinations Fees (Feb./ Mar. 2026) - Reg. Registration from 30-04-2026 to 06-05-2026.Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/distance/feb_2026/distance_feb_mar2026.pdf",
@@ -39,5 +46,5 @@
   ],
   "lastUpdated": "2026-05-08T06:28:56.939Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 6
+  "count": 7
 }
