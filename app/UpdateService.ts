@@ -9,6 +9,7 @@ const GITHUB_REPO_OWNER = 'Terrificdatabytes';
 const GITHUB_REPO_NAME = 'anna-univ-notifications';
 const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/latest`;
 const LAST_UPDATE_CHECK_KEY = 'last_update_check';
+const LATEST_RELEASE_CACHE_KEY = 'latest_release_cache';
 const UPDATE_CHECK_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 export interface AppVersion {
@@ -18,6 +19,13 @@ export interface AppVersion {
 
 export interface UpdateInfo {
   available: boolean;
+  latestVersion: string;
+  downloadUrl: string;
+  releaseNotes: string;
+  publishedAt: string;
+}
+
+interface CachedReleaseInfo {
   latestVersion: string;
   downloadUrl: string;
   releaseNotes: string;
@@ -59,6 +67,51 @@ export class UpdateService {
   }
 
   /**
+   * Save latest release metadata for reuse between update checks
+   */
+  private static async saveCachedRelease(
+    releaseInfo: CachedReleaseInfo,
+  ): Promise<void> {
+    try {
+      await AsyncStorage.setItem(
+        LATEST_RELEASE_CACHE_KEY,
+        JSON.stringify(releaseInfo),
+      );
+    } catch (error) {
+      console.error('Error saving cached release:', error);
+    }
+  }
+
+  /**
+   * Read cached release metadata and evaluate update availability
+   */
+  private static async getCachedUpdateInfo(): Promise<UpdateInfo | null> {
+    try {
+      const cached = await AsyncStorage.getItem(LATEST_RELEASE_CACHE_KEY);
+      if (!cached) {
+        return null;
+      }
+
+      const releaseInfo = JSON.parse(cached) as CachedReleaseInfo;
+      const latestVersionCode = this.parseVersionCode(
+        releaseInfo.latestVersion,
+      );
+      const updateAvailable = latestVersionCode > this.CURRENT_VERSION_CODE;
+
+      return {
+        available: updateAvailable,
+        latestVersion: releaseInfo.latestVersion,
+        downloadUrl: releaseInfo.downloadUrl,
+        releaseNotes: releaseInfo.releaseNotes,
+        publishedAt: releaseInfo.publishedAt,
+      };
+    } catch (error) {
+      console.error('Error reading cached release:', error);
+      return null;
+    }
+  }
+
+  /**
    * Parse version name to extract version code
    */
   private static parseVersionCode(versionName: string): number {
@@ -82,7 +135,7 @@ export class UpdateService {
       const shouldCheck = await this.shouldCheckForUpdate();
       if (!shouldCheck) {
         console.log('Update check skipped - checked recently');
-        return null;
+        return this.getCachedUpdateInfo();
       }
 
       console.log('Checking for app updates...');
@@ -94,7 +147,7 @@ export class UpdateService {
 
       if (!response.ok) {
         console.error('Failed to check for updates:', response.status);
-        return null;
+        return this.getCachedUpdateInfo();
       }
 
       const release = await response.json();
@@ -122,7 +175,7 @@ export class UpdateService {
 
       if (!apkAsset) {
         console.log('No APK found in latest release');
-        return null;
+        return this.getCachedUpdateInfo();
       }
 
       // Check if update is available
@@ -134,16 +187,25 @@ export class UpdateService {
         console.log('✅ App is up to date');
       }
 
-      return {
+      const updateInfo = {
         available: updateAvailable,
         latestVersion: latestVersionName,
         downloadUrl: apkAsset.browser_download_url,
         releaseNotes: release.body || 'No release notes available',
         publishedAt: release.published_at,
       };
+
+      await this.saveCachedRelease({
+        latestVersion: updateInfo.latestVersion,
+        downloadUrl: updateInfo.downloadUrl,
+        releaseNotes: updateInfo.releaseNotes,
+        publishedAt: updateInfo.publishedAt,
+      });
+
+      return updateInfo;
     } catch (error) {
       console.error('Error checking for updates:', error);
-      return null;
+      return this.getCachedUpdateInfo();
     }
   }
 

@@ -7,7 +7,7 @@
  * @format
  */
 
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {
   SafeAreaView,
   FlatList,
@@ -36,6 +36,7 @@ const NOTIFICATIONS_URL =
   'https://raw.githubusercontent.com/Terrificdatabytes/anna-univ-notifications/main/data/notifications.json';
 const CACHE_KEY = 'anna_univ_notifications';
 const COE_URL = 'https://coe.annauniv.edu';
+const PINNED_UPDATE_NOTIFICATION_ID = 'app-update-pinned';
 
 interface Notification {
   id: string;
@@ -59,6 +60,7 @@ function App(): React.JSX.Element {
   const [lastChecked, setLastChecked] = useState<string>('');
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+  const [isUpdateAvailable, setIsUpdateAvailable] = useState(false);
 
   const loadCachedNotifications = async () => {
     try {
@@ -106,15 +108,35 @@ function App(): React.JSX.Element {
   const checkForAppUpdate = async () => {
     try {
       const update = await UpdateService.checkForUpdate();
-      if (update && update.available) {
-        setUpdateInfo(update);
-        setShowUpdateBanner(true);
-        console.log('App update available:', update.latestVersion);
+      if (update) {
+        setIsUpdateAvailable(update.available);
+        if (update.available) {
+          setUpdateInfo(update);
+          setShowUpdateBanner(true);
+          console.log('App update available:', update.latestVersion);
+        } else {
+          setShowUpdateBanner(false);
+        }
+      } else {
+        setIsUpdateAvailable(false);
+        setShowUpdateBanner(false);
       }
     } catch (error) {
       console.error('Error checking for app update:', error);
+      setIsUpdateAvailable(false);
+      setShowUpdateBanner(false);
     }
   };
+
+  const visibleNotifications = useMemo(
+    () =>
+      notifications.filter(
+        notification =>
+          isUpdateAvailable ||
+          notification.id !== PINNED_UPDATE_NOTIFICATION_ID,
+      ),
+    [notifications, isUpdateAvailable],
+  );
 
   const initializeNotifications = async () => {
     await NotificationService.initialize();
@@ -298,7 +320,7 @@ function App(): React.JSX.Element {
       )}
       {renderHeader()}
       <FlatList
-        data={notifications}
+        data={visibleNotifications}
         renderItem={renderNotification}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
