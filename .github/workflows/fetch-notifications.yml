@@ -98,10 +98,21 @@ jobs:
             # ── Run the scraper ────────────────────────────────────────────────
             (cd scraper && npm start)
 
-            # ── Detect new notifications by ID comparison ──────────────────────
-            OLD_IDS=$(jq -r '.notifications[].id' data/notifications.json.old 2>/dev/null | sort -u || echo "")
-            NEW_IDS=$(jq -r '.notifications[].id' data/notifications.json 2>/dev/null | sort -u || echo "")
-            NEW_NOTIFICATION_IDS=$(comm -23 <(echo "$NEW_IDS") <(echo "$OLD_IDS"))
+            # ── Detect new notifications by normalized title (text-based) ──────
+            # Prevents push spam when the same old notice gets a regenerated ID.
+            NEW_NOTIFICATION_IDS=$(
+              jq -r --slurpfile old data/notifications.json.old '
+                def norm:
+                  ascii_downcase
+                  | gsub("[^a-z0-9]+"; " ")
+                  | gsub("^ +| +$"; "");
+                [ (($old[0].notifications // [])[].title) | norm | select(length > 0) ] as $old_norms
+                | (.notifications // [])[]
+                | (.title // "" | norm) as $new_norm
+                | select(($new_norm | length) > 0 and ($old_norms | index($new_norm) | not))
+                | .id
+              ' data/notifications.json 2>/dev/null | sort -u || echo ""
+            )
 
             if [ -n "$NEW_NOTIFICATION_IDS" ]; then
               NEW_COUNT=$(echo "$NEW_NOTIFICATION_IDS" | grep -c .)
