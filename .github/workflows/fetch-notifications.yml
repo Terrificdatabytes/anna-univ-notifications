@@ -98,7 +98,7 @@ jobs:
             # ── Run the scraper ────────────────────────────────────────────────
             (cd scraper && npm start)
 
-            # ── Detect new notifications by normalized title (text-by-text) ────
+            # ── Detect new notifications by normalized title (text-based) ──────
             # Prevents push spam when the same old notice gets a regenerated ID.
             NEW_NOTIFICATION_IDS=$(
               jq -r --slurpfile old data/notifications.json.old '
