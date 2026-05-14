@@ -41,6 +41,50 @@ function makeAbsoluteUrl(url) {
 }
 
 /**
+ * Check whether the fetched page content represents a fully working page.
+ * Returns false when the site returns a blank page, a forbidden message,
+ * or a "sorry / try again" error page – all cases where no real notification
+ * data is available.
+ */
+function isPageFullyWorking(responseData, $) {
+  const bodyText = ($('body').text() || '').trim().toLowerCase();
+
+  // Blank / nearly-empty page
+  if (!bodyText) {
+    console.warn('Page appears to be blank.');
+    return false;
+  }
+
+  // HTTP-level forbidden indicator embedded in page content
+  if (
+    bodyText.includes('403 forbidden') ||
+    bodyText.includes('access denied') ||
+    bodyText.includes('forbidden')
+  ) {
+    console.warn('Page returned a forbidden/access-denied message.');
+    return false;
+  }
+
+  // "Sorry" / "try again" error pages
+  if (
+    bodyText.includes('sorry') ||
+    bodyText.includes('try again') ||
+    bodyText.includes('something went wrong')
+  ) {
+    console.warn('Page returned a "sorry / try again" error message.');
+    return false;
+  }
+
+  // The notifications container must exist
+  if ($('#scrmsg').length === 0) {
+    console.warn('Notifications container (#scrmsg) not found on page.');
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Scrape notifications from COE website
  */
 async function scrapeNotifications() {
@@ -57,8 +101,35 @@ async function scrapeNotifications() {
         rejectUnauthorized: false
       })
     });
-    
+
+    // Read existing data first – needed both for the page-not-working guard
+    // and for preserving lastChecked.
+    let existingData = null;
+    try {
+      if (existsSync(OUTPUT_FILE)) {
+        existingData = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
+      }
+    } catch (_) {
+      // ignore – no existing file or parse error
+    }
+
     const $ = cheerio.load(response.data);
+
+    // Guard: if the page is not fully working, keep existing data unchanged
+    if (!isPageFullyWorking(response.data, $)) {
+      console.warn(
+        'Page is not fully functional. Skipping update to preserve existing notifications.'
+      );
+      if (existingData) {
+        console.log(
+          `Retaining existing ${existingData.count} notification(s) from previous successful scrape.`
+        );
+        return existingData;
+      }
+      // No existing data to fall back to – return an empty-but-safe structure
+      return { notifications: [], lastUpdated: null, lastChecked: null, count: 0 };
+    }
+
     const notifications = [];
     
     // Find all <p> elements inside the marquee with id="scrmsg"
@@ -98,23 +169,12 @@ async function scrapeNotifications() {
     });
     
     console.log(`Found ${notifications.length} notifications`);
-    
-    // Preserve lastChecked from the existing file (written by the CF Worker every minute)
-    let lastChecked = null;
-    try {
-      if (existsSync(OUTPUT_FILE)) {
-        const existing = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
-        lastChecked = existing.lastChecked || null;
-      }
-    } catch (_) {
-      // ignore – no existing file or parse error
-    }
 
     // Prepare output data
     const outputData = {
       notifications,
       lastUpdated: new Date().toISOString(),
-      lastChecked,
+      lastChecked: existingData ? (existingData.lastChecked || null) : null,
       count: notifications.length
     };
     
