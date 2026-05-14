@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "b3490e07",
+      "title": "Kind Attention to the Institution: - WEB PORTAL IS OPENED FOR HALL TICKET AND ATTENDANCE SHEET (FOR ELIGIBLE REGISTERED CANDIDATES  AND FEES PAID COLLEGES ONLY) FOR APRIL/ MAY 2026 EXAMINATIONS.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "48df272a",
       "title": "Distance Education:- Candidates are requested to approach the respective Study Centre for Collecting Hall Ticket for February / March 2026 Examinations .Students who have already made a request for  Change of Exam Centre may contact 044-22357300/044-22357248.",
       "link": null,
@@ -61,7 +67,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-05-14T13:37:41.119Z",
+  "lastUpdated": "2026-05-14T13:38:41.070Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 10
+  "count": 11
 }
