@@ -113,14 +113,7 @@ jobs:
               echo "🔔 ${NEW_COUNT} new notification(s) detected!"
               echo "   First: ${FIRST_TITLE}"
 
-              # Send Firebase push notification
-              if [ "$NEW_COUNT" -eq "1" ]; then
-                node scripts/send-new-notification.js "$FIRST_TITLE" 1
-              else
-                node scripts/send-new-notification.js "$FIRST_TITLE" "$NEW_COUNT"
-              fi
-
-              # Store details for post-push dispatch to process-notification workflow
+              # Store details for post-push actions
               NEW_IDS_CSV=$(echo "$NEW_NOTIFICATION_IDS" | tr '\n' ',' | sed 's/,$//')
               DISPATCH_IDS_CSV="$NEW_IDS_CSV"
               DISPATCH_TITLE="$FIRST_TITLE"
@@ -150,6 +143,14 @@ jobs:
                 echo "   ✓ Committed and pushed."
                 # Roll forward the baseline for the next iteration
                 cp data/notifications.json data/notifications.json.old
+                # Send Firebase push notification after a successful push
+                if [ -n "$DISPATCH_IDS_CSV" ]; then
+                  if [ "$DISPATCH_COUNT" -eq "1" ]; then
+                    node scripts/send-new-notification.js "$DISPATCH_TITLE" 1
+                  else
+                    node scripts/send-new-notification.js "$DISPATCH_TITLE" "$DISPATCH_COUNT"
+                  fi
+                fi
                 # ── Dispatch process-notification workflow for new notifications ──
                 if [ -n "$DISPATCH_IDS_CSV" ]; then
                   echo "   Dispatching process-notification workflow for: ${DISPATCH_IDS_CSV}"
