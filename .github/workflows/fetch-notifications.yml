@@ -106,9 +106,9 @@ jobs:
                   ascii_downcase
                   | gsub("[^a-z0-9]+"; " ")
                   | gsub("^ +| +$"; "");
-                [ (($old[0].notifications // [])[].title) | tostring | norm | select(length > 0) ] as $old_norms
+                [ (($old[0].notifications // [])[].title) | norm | select(length > 0) ] as $old_norms
                 | (.notifications // [])[]
-                | (.title // "" | tostring | norm) as $new_norm
+                | (.title // "" | norm) as $new_norm
                 | select(($new_norm | length) > 0 and ($old_norms | index($new_norm) | not))
                 | .id
               ' data/notifications.json 2>/dev/null | sort -u || echo ""
