@@ -88,6 +88,16 @@ function isPageFullyWorking(responseData, $) {
  * Scrape notifications from COE website
  */
 async function scrapeNotifications() {
+  // Read existing data first so network-related failures can fall back safely.
+  let existingData = null;
+  try {
+    if (existsSync(OUTPUT_FILE)) {
+      existingData = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
+    }
+  } catch (_) {
+    // ignore – no existing file or parse error
+  }
+
   try {
     console.log('Fetching notifications from:', COE_URL);
     
@@ -101,17 +111,6 @@ async function scrapeNotifications() {
         rejectUnauthorized: false
       })
     });
-
-    // Read existing data first – needed both for the page-not-working guard
-    // and for preserving lastChecked.
-    let existingData = null;
-    try {
-      if (existsSync(OUTPUT_FILE)) {
-        existingData = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
-      }
-    } catch (_) {
-      // ignore – no existing file or parse error
-    }
 
     const $ = cheerio.load(response.data);
 
@@ -188,6 +187,29 @@ async function scrapeNotifications() {
     return outputData;
   } catch (error) {
     console.error('Error scraping notifications:', error.message);
+
+    const transientNetworkErrorCodes = new Set([
+      'ETIMEDOUT',
+      'ENOTFOUND',
+      'ECONNABORTED',
+      'ECONNRESET',
+      'EAI_AGAIN',
+      'ECONNREFUSED'
+    ]);
+
+    if (axios.isAxiosError(error) && transientNetworkErrorCodes.has(error.code)) {
+      console.warn(
+        `Transient network error (${error.code}) while fetching notifications. Preserving existing data and continuing.`
+      );
+      if (existingData) {
+        return existingData;
+      }
+      const fallbackData = { notifications: [], lastUpdated: null, lastChecked: null, count: 0 };
+      mkdirSync(dirname(OUTPUT_FILE), { recursive: true });
+      writeFileSync(OUTPUT_FILE, JSON.stringify(fallbackData, null, 2));
+      return fallbackData;
+    }
+
     throw error;
   }
 }
