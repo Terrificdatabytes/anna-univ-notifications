@@ -99,7 +99,7 @@ async function scrapeNotifications() {
       existingData = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
     }
   } catch (error) {
-    console.warn(`Could not load existing notifications file: ${error.message}`);
+    console.warn(`Existing notifications file could not be read or parsed: ${error.message}`);
   }
 
   try {
@@ -209,6 +209,7 @@ async function scrapeNotifications() {
         return existingData;
       }
       const fallbackData = createEmptyOutputData();
+      console.warn('No existing notifications data found; writing an empty fallback dataset.');
       mkdirSync(dirname(OUTPUT_FILE), { recursive: true });
       writeFileSync(OUTPUT_FILE, JSON.stringify(fallbackData, null, 2));
       return fallbackData;
