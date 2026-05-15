@@ -201,7 +201,11 @@ async function scrapeNotifications() {
       'ECONNREFUSED'
     ]);
 
-    if (axios.isAxiosError(error) && transientNetworkErrorCodes.has(error.code)) {
+    if (
+      axios.isAxiosError(error) &&
+      error.code &&
+      transientNetworkErrorCodes.has(error.code)
+    ) {
       console.warn(
         `Transient network error (${error.code}) while fetching notifications. Preserving existing data and continuing.`
       );
