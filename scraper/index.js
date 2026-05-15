@@ -12,9 +12,22 @@ const __dirname = dirname(__filename);
 const COE_URL = 'https://coe1.annauniv.edu/home/';
 const BASE_URL = 'https://coe.annauniv.edu';
 const OUTPUT_FILE = join(__dirname, '../data/notifications.json');
+const TRANSIENT_NETWORK_ERROR_CODES = new Set([
+  'ETIMEDOUT',
+  'ENOTFOUND',
+  'ECONNABORTED',
+  'ECONNRESET',
+  'EAI_AGAIN',
+  'ECONNREFUSED'
+]);
 
 function createEmptyOutputData() {
   return { notifications: [], lastUpdated: null, lastChecked: null, count: 0 };
+}
+
+function writeOutputData(outputData) {
+  mkdirSync(dirname(OUTPUT_FILE), { recursive: true });
+  writeFileSync(OUTPUT_FILE, JSON.stringify(outputData, null, 2));
 }
 
 /**
@@ -92,14 +105,16 @@ function isPageFullyWorking(responseData, $) {
  * Scrape notifications from COE website
  */
 async function scrapeNotifications() {
-  // Read existing data first so network-related failures can fall back safely.
+  // Read existing data first so network related failures can fall back safely.
   let existingData = null;
   try {
     if (existsSync(OUTPUT_FILE)) {
       existingData = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
     }
   } catch (error) {
-    console.warn(`Existing notifications file could not be read or parsed: ${error.message}`);
+    console.warn(
+      `Existing notifications file (${OUTPUT_FILE}) could not be read or parsed: ${error.message}`
+    );
   }
 
   try {
@@ -181,30 +196,18 @@ async function scrapeNotifications() {
       count: notifications.length
     };
     
-    // Ensure data directory exists
-    mkdirSync(dirname(OUTPUT_FILE), { recursive: true });
-    
     // Write to JSON file
-    writeFileSync(OUTPUT_FILE, JSON.stringify(outputData, null, 2));
+    writeOutputData(outputData);
     console.log('Notifications saved to:', OUTPUT_FILE);
     
     return outputData;
   } catch (error) {
     console.error('Error scraping notifications:', error.message);
 
-    const transientNetworkErrorCodes = new Set([
-      'ETIMEDOUT',
-      'ENOTFOUND',
-      'ECONNABORTED',
-      'ECONNRESET',
-      'EAI_AGAIN',
-      'ECONNREFUSED'
-    ]);
-
     if (
       axios.isAxiosError(error) &&
       error.code &&
-      transientNetworkErrorCodes.has(error.code)
+      TRANSIENT_NETWORK_ERROR_CODES.has(error.code)
     ) {
       console.warn(
         `Transient network error (${error.code}) while fetching notifications. Preserving existing data and continuing.`
@@ -214,8 +217,7 @@ async function scrapeNotifications() {
       }
       const fallbackData = createEmptyOutputData();
       console.warn('No existing notifications data found; writing an empty fallback dataset.');
-      mkdirSync(dirname(OUTPUT_FILE), { recursive: true });
-      writeFileSync(OUTPUT_FILE, JSON.stringify(fallbackData, null, 2));
+      writeOutputData(fallbackData);
       return fallbackData;
     }
 
