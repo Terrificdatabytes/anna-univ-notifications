@@ -209,12 +209,15 @@ async function scrapeNotifications() {
       error.code &&
       TRANSIENT_NETWORK_ERROR_CODES.has(error.code)
     ) {
-      console.warn(
-        `Transient network error (${error.code}) while fetching notifications. Preserving existing data and continuing.`
-      );
       if (existingData) {
+        console.warn(
+          `Transient network error (${error.code}) while fetching notifications. Preserving existing data and continuing.`
+        );
         return existingData;
       }
+      console.warn(
+        `Transient network error (${error.code}) while fetching notifications. No existing data available, using empty fallback data.`
+      );
       const fallbackData = createEmptyOutputData();
       console.warn('No existing notifications data found; writing an empty fallback dataset.');
       writeOutputData(fallbackData);
