@@ -13,6 +13,10 @@ const COE_URL = 'https://coe1.annauniv.edu/home/';
 const BASE_URL = 'https://coe.annauniv.edu';
 const OUTPUT_FILE = join(__dirname, '../data/notifications.json');
 
+function createEmptyOutputData() {
+  return { notifications: [], lastUpdated: null, lastChecked: null, count: 0 };
+}
+
 /**
  * Generate MD5 hash for unique ID
  */
@@ -94,8 +98,8 @@ async function scrapeNotifications() {
     if (existsSync(OUTPUT_FILE)) {
       existingData = JSON.parse(readFileSync(OUTPUT_FILE, 'utf8'));
     }
-  } catch (_) {
-    // ignore – no existing file or parse error
+  } catch (error) {
+    console.warn(`Could not load existing notifications file: ${error.message}`);
   }
 
   try {
@@ -126,7 +130,7 @@ async function scrapeNotifications() {
         return existingData;
       }
       // No existing data to fall back to – return an empty-but-safe structure
-      return { notifications: [], lastUpdated: null, lastChecked: null, count: 0 };
+      return createEmptyOutputData();
     }
 
     const notifications = [];
@@ -204,7 +208,7 @@ async function scrapeNotifications() {
       if (existingData) {
         return existingData;
       }
-      const fallbackData = { notifications: [], lastUpdated: null, lastChecked: null, count: 0 };
+      const fallbackData = createEmptyOutputData();
       mkdirSync(dirname(OUTPUT_FILE), { recursive: true });
       writeFileSync(OUTPUT_FILE, JSON.stringify(fallbackData, null, 2));
       return fallbackData;
