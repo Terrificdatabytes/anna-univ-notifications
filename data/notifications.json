@@ -1,12 +1,6 @@
 {
   "notifications": [
     {
-      "id": "c129a67c",
-      "title": "Kind Attention to the Institutions:Pending Revaluation Results of Nov./Dec. 2025 Examinations have been published. Candidates can apply for Review of Answer Scripts. The Web Portal will be closed by 05:00 PM on 20-05-2026.",
-      "link": null,
-      "isNew": true
-    },
-    {
       "id": "b3490e07",
       "title": "Kind Attention to the Institution: - WEB PORTAL IS OPENED FOR HALL TICKET AND ATTENDANCE SHEET (FOR ELIGIBLE REGISTERED CANDIDATES  AND FEES PAID COLLEGES ONLY) FOR APRIL/ MAY 2026 EXAMINATIONS.",
       "link": null,
@@ -67,7 +61,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-05-20T11:54:16.936Z",
+  "lastUpdated": "2026-05-20T11:55:17.323Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 11
+  "count": 10
 }
