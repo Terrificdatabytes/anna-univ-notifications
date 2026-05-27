@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "229db2cb",
+      "title": "Kind Attention to the Institution :- The results of the April/May 2026 final semester UG (B.E. / B.Tech.) project work is published.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "b3490e07",
       "title": "Kind Attention to the Institution: - WEB PORTAL IS OPENED FOR HALL TICKET AND ATTENDANCE SHEET (FOR ELIGIBLE REGISTERED CANDIDATES  AND FEES PAID COLLEGES ONLY) FOR APRIL/ MAY 2026 EXAMINATIONS.",
       "link": null,
@@ -61,7 +67,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-05-27T09:02:17.761Z",
+  "lastUpdated": "2026-05-27T09:03:18.724Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 10
+  "count": 11
 }
