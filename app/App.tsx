@@ -239,7 +239,7 @@ function App(): React.JSX.Element {
         <Image source={LOGO_IMAGE} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Anna University COE Notifications</Text>
-          <Text style={styles.headerSubtitle}>DEVELOPED BY K.S.PRAVEEN CSC THIRD Year AURCM MADURAI</Text>
+          <Text style={styles.headerSubtitle}>DEVELOPED BY K.S.PRAVEEN CSE THIRD YEAR AURCM MADURAI</Text>
           <Text style={styles.logoAttribution}>©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES</Text>
         </View>
       </View>
@@ -265,7 +265,7 @@ function App(): React.JSX.Element {
         Developed by K.S.PRAVEEN (terrificdatabytes)
       </Text>
       <Text style={styles.footerSubtext}>
-        2nd year CSE, Anna University Regional Campus Madurai
+        3rd year CSE, Anna University Regional Campus Madurai
       </Text>
     </View>
   );
