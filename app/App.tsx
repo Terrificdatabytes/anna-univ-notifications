@@ -239,7 +239,7 @@ function App(): React.JSX.Element {
         <Image source={LOGO_IMAGE} style={styles.logo} resizeMode="contain" />
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Anna University COE Notifications</Text>
-          <Text style={styles.headerSubtitle}>DEVELOPED BY K.S.PRAVEEN Cse 2nd Year AURCM MADURAI</Text>
+          <Text style={styles.headerSubtitle}>DEVELOPED BY K.S.PRAVEEN CSC THIRD Year AURCM MADURAI</Text>
           <Text style={styles.logoAttribution}>©2026 ALL RIGHTS RESERVED TERRIFICDATABYTES</Text>
         </View>
       </View>
@@ -248,11 +248,7 @@ function App(): React.JSX.Element {
           Last updated: {formatDate(lastUpdated)}
         </Text>
       )}
-      {lastChecked && (
-        <Text style={styles.lastCheckedText}>
-          Last checked: {formatDate(lastChecked)}
-        </Text>
-      )}
+      
     </View>
   );
 
