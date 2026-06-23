@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "7f87e06f",
+      "title": "Affiliated / Autonomous Institutions are instructed to upload the final semester both UG/PG Candidates profile with photo for printing the Degree Certificate of the ensuing convocation. Select the option April/May 2026 Examination link. Last Date for Uploading photos is 06-07-2026.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "b4c62ea3",
       "title": "Kind Attention to the Institutions: - Review Results of Nov./Dec. 2025 Examinations are Published",
       "link": null,
@@ -73,7 +79,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-06-23T10:29:11.312Z",
+  "lastUpdated": "2026-06-23T10:30:11.415Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 12
+  "count": 13
 }
