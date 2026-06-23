@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "5eec58be",
+      "title": "Kind attention to the Institutions :- Uploading of EMIS No. / Photographs of the Candidates - Reg Click Here",
+      "link": "https://coe.annauniv.edu/ http://coe.annauniv.edu/aucoe/pdf/common/AFF_AUTO_EMIS_REG.pdf",
+      "isNew": true
+    },
+    {
       "id": "7f87e06f",
       "title": "Affiliated / Autonomous Institutions are instructed to upload the final semester both UG/PG Candidates profile with photo for printing the Degree Certificate of the ensuing convocation. Select the option April/May 2026 Examination link. Last Date for Uploading photos is 06-07-2026.",
       "link": null,
@@ -79,7 +85,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-06-23T13:29:18.613Z",
+  "lastUpdated": "2026-06-23T13:30:18.879Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 13
+  "count": 14
 }
