@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "def60dc3",
+      "title": "Kind Attention to the Institutions:- Academic and Assessment Schedule – Nov./Dec. 2026 Examinations(Except First Year)-Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/nd26_except_1st_year_assement.pdf",
+      "isNew": true
+    },
+    {
       "id": "5eec58be",
       "title": "Kind attention to the Institutions :- Uploading of EMIS No. / Photographs of the Candidates - Reg Click Here",
       "link": "https://coe.annauniv.edu/ http://coe.annauniv.edu/aucoe/pdf/common/AFF_AUTO_EMIS_REG.pdf",
@@ -13,7 +19,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-08-04T11:33:33.749Z",
+  "lastUpdated": "2026-08-04T11:34:34.091Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 2
+  "count": 3
 }
