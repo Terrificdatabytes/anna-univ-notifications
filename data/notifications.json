@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "429ce77c",
+      "title": "Kind Attention to Institutions: April/May 2026 Examination Results (Except First & Second Year) have been published.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "def60dc3",
       "title": "Kind Attention to the Institutions:- Academic and Assessment Schedule – Nov./Dec. 2026 Examinations(Except First Year)-Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/nd26_except_1st_year_assement.pdf",
@@ -19,7 +25,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-08-08T12:09:01.599Z",
+  "lastUpdated": "2026-08-08T12:10:01.568Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 3
+  "count": 4
 }
