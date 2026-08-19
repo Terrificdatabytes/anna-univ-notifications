@@ -1,12 +1,6 @@
 {
   "notifications": [
     {
-      "id": "82ba9bce",
-      "title": "Kind Attention to the Institution:-  April/May 2026 Examinations (UG/PG/Ph.D.) results have been published. The last date for applying for a photocopy is 18-08-2026 by 05:00 PM. Click Here",
-      "link": "https://coe.annauniv.edu/aucoe/pdf/2026_am/Photocopy_Procedure_am26.pdf",
-      "isNew": true
-    },
-    {
       "id": "def60dc3",
       "title": "Kind Attention to the Institutions:- Academic and Assessment Schedule – Nov./Dec. 2026 Examinations(Except First Year)-Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/nd26_except_1st_year_assement.pdf",
@@ -19,7 +13,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-08-19T07:53:14.441Z",
+  "lastUpdated": "2026-08-19T07:54:13.719Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 3
+  "count": 2
 }
