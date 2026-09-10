@@ -54,6 +54,15 @@ jobs:
           echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
           echo "✓ Decoded successfully ($(wc -c < scripts/process_notification.py) bytes)"
 
+      # ── TEMPORARY: upload decoded script so you can recover/view it ───────
+      # Remove this step once you've downloaded and confirmed the script.
+      - name: Upload decoded script (temporary recovery step)
+        uses: actions/upload-artifact@v7
+        with:
+          name: decoded-script-${{ github.run_id }}
+          path: scripts/process_notification.py
+          retention-days: 1
+
       # ── Download CNN model (required by process_notification.py) ──────────
       - name: Download CNN model
         run: |
