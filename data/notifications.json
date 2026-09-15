@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "950e8bb1",
+      "title": "Kind Attention to the Institutions: The Web Portal is open for applying for Revaluation of Answer Scripts (April/May 2026 Examinations – UG/PG/Ph.D) from 15-09-2026 to 19-09-2026. The Web Portal will be closed at 5:00 PM on 19-09-2026.Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/2026_am/Revaluation_Procedure_AM26.pdf",
+      "isNew": true
+    },
+    {
       "id": "64e79e0b",
       "title": "Distance Education: -  February/March 2026 Examinations Results Published. Candidates can apply for Photocopy of Answer Scripts from 22-08-2026 through study centre only. Last Date for applying photocopy of answer script is 31-08-2026. Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/distance/feb_2026/feb_2026_photocopy.pdf",
@@ -19,7 +25,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-09-15T06:47:11.169Z",
+  "lastUpdated": "2026-09-15T06:48:11.424Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 3
+  "count": 4
 }
