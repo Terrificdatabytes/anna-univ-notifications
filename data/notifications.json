@@ -1,8 +1,8 @@
 {
   "notifications": [
     {
-      "id": "4d4a8b17",
-      "title": "Distance Education:- Web Portal is opened for Applying Revaluation of Answer Script(Feb. / Mar. 2026 Examinations) from 18-09-2026 to 26-09-2026 through study centre only. The Web Portal will be closed on 30-03-2026.Click Here",
+      "id": "d485b72e",
+      "title": "Distance Education:- Web Portal is opened for Applying Revaluation of Answer Script(Feb. / Mar. 2026 Examinations) from 18-09-2026 to 26-09-2026 through study centre only. The Web Portal will be closed on 26-09-2026.Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/distance/feb_2026/dist_rv_0226.pdf",
       "isNew": true
     },
@@ -25,7 +25,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-09-17T09:14:23.696Z",
+  "lastUpdated": "2026-09-17T09:15:42.139Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
   "count": 4
 }
