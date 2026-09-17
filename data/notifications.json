@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "4d4a8b17",
+      "title": "Distance Education:- Web Portal is opened for Applying Revaluation of Answer Script(Feb. / Mar. 2026 Examinations) from 18-09-2026 to 26-09-2026 through study centre only. The Web Portal will be closed on 30-03-2026.Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/distance/feb_2026/dist_rv_0226.pdf",
+      "isNew": true
+    },
+    {
       "id": "950e8bb1",
       "title": "Kind Attention to the Institutions: The Web Portal is open for applying for Revaluation of Answer Scripts (April/May 2026 Examinations – UG/PG/Ph.D) from 15-09-2026 to 19-09-2026. The Web Portal will be closed at 5:00 PM on 19-09-2026.Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/2026_am/Revaluation_Procedure_AM26.pdf",
@@ -19,7 +25,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-09-17T09:12:23.473Z",
+  "lastUpdated": "2026-09-17T09:13:23.475Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 3
+  "count": 4
 }
