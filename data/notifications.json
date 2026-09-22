@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "c2c4bf53",
+      "title": "Distance Education:   December - 2025  Online Examinations - Online Mode M.B.A. (Business Analytics and General Management) Results Published.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "d485b72e",
       "title": "Distance Education:- Web Portal is opened for Applying Revaluation of Answer Script(Feb. / Mar. 2026 Examinations) from 18-09-2026 to 26-09-2026 through study centre only. The Web Portal will be closed on 26-09-2026.Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/distance/feb_2026/dist_rv_0226.pdf",
@@ -19,7 +25,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-09-22T11:07:47.985Z",
+  "lastUpdated": "2026-09-22T11:08:48.458Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 3
+  "count": 4
 }
