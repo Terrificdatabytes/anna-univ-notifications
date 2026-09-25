@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "965f7213",
+      "title": "Web Portal is Opened for Registration of Nov./Dec 2026 Examinations. Institutions are instructed to take a Registration Preview first and Give it to the concerned student for verifying subjects to be registered. Last Date for completing the Registration Process is 01-10-2026(by 5:00 P.M.).",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "c2c4bf53",
       "title": "Distance Education:   December - 2025  Online Examinations - Online Mode M.B.A. (Business Analytics and General Management) Results Published.",
       "link": null,
@@ -25,7 +31,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-09-25T14:02:43.166Z",
+  "lastUpdated": "2026-09-25T14:03:43.536Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 4
+  "count": 5
 }
