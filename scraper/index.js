@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const COE_URL = 'https://coe1.annauniv.edu/home/';
+const COE_URL = 'https://coe.annauniv.edu/home/';
 const BASE_URL = 'https://coe.annauniv.edu';
 const OUTPUT_FILE = join(__dirname, '../data/notifications.json');
 const TRANSIENT_NETWORK_ERROR_CODES = new Set([
