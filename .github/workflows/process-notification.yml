@@ -74,35 +74,64 @@ jobs:
           python3 scripts/process_notification.py "${{ inputs.new_ids_csv }}" data/notifications.json
           echo "✓ Script completed successfully"
 
-      # ── Upload CSV files as one artifact ──────────────────────────────────
-      - name: Upload CSV artifacts
+      # ── Pack every output into ONE password-protected zip ─────────────────
+      # Password is stored in the repo secret ZIP_PASSWORD
+      # (Settings → Secrets and variables → Actions)
+      - name: Create encrypted ZIP
+        if: always()
+        env:
+          ZIP_PASSWORD: ${{ secrets.ZIP_PASSWORD }}
+        run: |
+          pip install pyzipper
+          python3 - <<'EOF'
+          import os, glob, pyzipper
+
+          password = os.environ["ZIP_PASSWORD"].encode("utf-8")
+          run_id = os.environ["GITHUB_RUN_ID"]
+          out = f"outputs-{run_id}.zip"
+
+          # Files and folders previously uploaded as separate artifacts
+          patterns = [
+              "anna_results.csv",
+              "anna_summary_*.csv",
+              "students.csv",
+              "result_pages",
+              "generated_files",
+          ]
+
+          files = []
+          for p in patterns:
+              for match in glob.glob(p):
+                  if os.path.isdir(match):
+                      for root, _, names in os.walk(match):
+                          files += [os.path.join(root, n) for n in names]
+                  else:
+                      files.append(match)
+
+          if not files:
+              print("::warning::No output files found, skipping zip")
+              raise SystemExit(0)
+
+          with pyzipper.AESZipFile(out, "w",
+                                   compression=pyzipper.ZIP_DEFLATED,
+                                   encryption=pyzipper.WZ_AES) as zf:
+              zf.setpassword(password)
+              zf.setencryption(pyzipper.WZ_AES, nbits=256)
+              for f in files:
+                  zf.write(f, arcname=f)
+
+          print(f"✓ Created {out} with {len(files)} files")
+          EOF
+
+      - name: Upload encrypted ZIP
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: csv-output-${{ github.run_id }}
-          path: |
-            anna_results.csv
-            anna_summary_*.csv
-            students.csv
-          if-no-files-found: warn
-
-      # ── Upload result HTML pages folder as one artifact ───────────────────
-      - name: Upload result pages
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: result-pages-${{ github.run_id }}
-          path: result_pages/
-          if-no-files-found: warn
-
-      - name: Upload notification report artifacts
-        if: hashFiles('generated_files/**') != ''
-        uses: actions/upload-artifact@v7
-        with:
-          name: notification-reports-${{ github.run_id }}
-          path: generated_files/
+          name: outputs-${{ github.run_id }}
+          path: outputs-${{ github.run_id }}.zip
           if-no-files-found: warn
           retention-days: 30
+          compression-level: 0
 
       - name: Summary
         if: always()
