@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "20b0c914",
+      "title": "Kind Attention to the Institutions: - Revaluation Results of April/May 2026 Examinations are Published.Candidates Can apply for Review of Answer Scripts.The Web Portal will be closed by 04:00 pm on 14-10-2026.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "05daa95e",
       "title": "Distance Education - Online Mode - (MBA) Web Portal is Opened for Registration of July/August 2026  End Semester Examinations (e-VBAB Network Project Students (Afghanistan and Africa)) from 26-09-2026 to 03-10-2026.-Click Here",
       "link": "http://coe.annauniv.edu/aucoe/pdf/distance/july_2026/Online_Aug_2026_MEA.pdf",
@@ -37,7 +43,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-10-08T07:41:36.430Z",
+  "lastUpdated": "2026-10-08T07:42:36.470Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 6
+  "count": 7
 }
