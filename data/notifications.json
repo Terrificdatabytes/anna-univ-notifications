@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "f945448b",
+      "title": "Kind Attention to the Institutions:- Academic and Assessment Schedule – Nov./Dec. 2026 Examinations(First Year)-Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/nd26_1st_year_assement.pdf",
+      "isNew": true
+    },
+    {
       "id": "20b0c914",
       "title": "Kind Attention to the Institutions: - Revaluation Results of April/May 2026 Examinations are Published.Candidates Can apply for Review of Answer Scripts.The Web Portal will be closed by 04:00 pm on 14-10-2026.",
       "link": null,
@@ -43,7 +49,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-10-10T10:27:26.225Z",
+  "lastUpdated": "2026-10-10T10:28:26.089Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 7
+  "count": 8
 }
