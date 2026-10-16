@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "af57c289",
+      "title": "Kind Attention to the Institutions:The Web Portal for Registration for the November/December 2026 Examinations has been extended up to Friday, 23-10-2026, at 5:00 P.M.All institutions are requested to complete the registration process before the deadline.-Click Here",
+      "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/REGISTRATION_EXTEND.pdf",
+      "isNew": true
+    },
+    {
       "id": "955708cb",
       "title": "Kind Attention to the Institutions:- Nov./Dec 2026 - Practical Examinations Schedule-.Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/Pratical ND26.pdf",
@@ -55,7 +61,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-10-16T13:25:07.642Z",
+  "lastUpdated": "2026-10-16T13:26:07.901Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 9
+  "count": 10
 }
