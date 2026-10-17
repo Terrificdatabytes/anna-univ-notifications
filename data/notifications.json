@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "c71d442c",
+      "title": "Distance Education:- Web Portal is opened for Downloading the Hall Ticket for Online Mode MBA (Business analytics and General Management) - JULY/AUGUST 2026 Online Examinations. Candidates can download the Hall Ticket from Student login.[https://coe.annauniv.edu/home/]",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "af57c289",
       "title": "Kind Attention to the Institutions:The Web Portal for Registration for the November/December 2026 Examinations has been extended up to Friday, 23-10-2026, at 5:00 P.M.All institutions are requested to complete the registration process before the deadline.-Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/REGISTRATION_EXTEND.pdf",
@@ -61,7 +67,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-10-17T06:38:54.974Z",
+  "lastUpdated": "2026-10-17T06:39:54.938Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 10
+  "count": 11
 }
