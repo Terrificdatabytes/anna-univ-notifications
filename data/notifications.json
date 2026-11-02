@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "bc4f083f",
+      "title": "Distance Education : - Notification for Payment of Examination Fees ( Aug./Sep. 2026) - Reg. Registration from 03-11-2026 to 10-11-2026.Click Here",
+      "link": "http://coe.annauniv.edu/aucoe/pdf/distance/aug_2026/AUG_2026_Exam_Notification.pdf",
+      "isNew": true
+    },
+    {
       "id": "c5c19690",
       "title": "Distance Education: -  February/March 2026 Examinations Revaluation Results Published.",
       "link": null,
@@ -79,7 +85,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-11-02T11:26:09.875Z",
+  "lastUpdated": "2026-11-02T11:27:09.881Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 13
+  "count": 14
 }
