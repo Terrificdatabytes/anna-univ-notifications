@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "c5c19690",
+      "title": "Distance Education: -  February/March 2026 Examinations Revaluation Results Published.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "8533cc99",
       "title": "Kind Attention to the Institutions:- Change of Exam Centres - Nov. /Dec. 2026 Examinations - Click Here",
       "link": "http://coe.annauniv.edu/aucoe/pdf/2026_nd/Change_centre_nd26.pdf",
@@ -73,7 +79,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-11-02T08:44:13.095Z",
+  "lastUpdated": "2026-11-02T08:45:13.098Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 12
+  "count": 13
 }
