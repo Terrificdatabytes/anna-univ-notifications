@@ -4,7 +4,7 @@ An automated system that fetches notifications from Anna University COE website 
 
 ## 📥 Download
 
-[**Download Latest APK (v2.0)**](https://github.com/Terrificdatabytes/anna-univ-notifications/releases/download/v2.0/anna-univ-notifications-v2.0.apk)
+[**Download Latest APK (v3.0)**](https://github.com/Terrificdatabytes/anna-univ-notifications/releases/download/v3.0/anna-univ-notifications-v3.0.apk)
 
 ## 📸 Screenshots
 
