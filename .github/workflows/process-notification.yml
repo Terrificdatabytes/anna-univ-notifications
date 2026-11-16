@@ -23,11 +23,6 @@ jobs:
     permissions:
       contents: read
       actions: write
-    env:
-      # Force uv to always use its own managed Python build, never the
-      # OS-provided Python 3.12 at /usr — Ubuntu 24.04 marks that one
-      # "externally managed" (PEP 668) and refuses direct pip installs into it.
-      UV_PYTHON_PREFERENCE: only-managed
 
     steps:
       - name: Checkout repository
@@ -50,9 +45,18 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "scripts/requirements.txt"
 
+      # ── Create a real venv so PEP 668's "externally managed" lock on the
+      # ── OS Python at /usr (Ubuntu 24.04) never applies — a venv is exempt.
+      # ── Adding its bin/ to GITHUB_PATH makes every later step's plain
+      # ── `python3` resolve to this venv automatically.
+      - name: Create virtual environment
+        run: |
+          uv venv .venv
+          echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
+
       # ── Fast parallel install of all dependencies (incl. pyzipper) ───────
       - name: Install Python dependencies
-        run: uv pip install --system -r scripts/requirements.txt
+        run: uv pip install -r scripts/requirements.txt
 
       # ── Decode the gzip-compressed, base64-encoded secret ──────────────────
       - name: Restore private Python script from secret
