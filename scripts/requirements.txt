@@ -1,8 +1,9 @@
-requests
-beautifulsoup4
-lxml
-opencv-python-headless
-Pillow
-numpy
-pandas
-tensorflow
+tensorflow-cpu>=2.21,<2.22
+numpy>=2.4,<2.5
+opencv-python-headless>=4.14,<5.0
+pandas>=2.2,<2.3
+Pillow>=11.3,<12.0
+lxml>=6.1,<7.0
+beautifulsoup4>=4.13,<4.14
+requests>=2.32,<2.33
+pyzipper>=0.3,<0.4
