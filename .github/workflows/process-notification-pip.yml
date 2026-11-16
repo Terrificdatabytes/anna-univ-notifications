@@ -1,0 +1,144 @@
+name: Process Notification
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_ids_csv:
+        description: 'Comma-separated IDs of new notifications'
+        required: true
+        type: string
+      first_title:
+        description: 'Title of the first new notification'
+        required: true
+        type: string
+      new_count:
+        description: 'Number of new notifications detected'
+        required: true
+        type: string
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Display run info
+        run: |
+          echo "================================================"
+          echo "NEW NOTIFICATIONS : ${{ inputs.new_count }}"
+          echo "FIRST TITLE       : ${{ inputs.first_title }}"
+          echo "IDS               : ${{ inputs.new_ids_csv }}"
+          echo "START TIME        : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "================================================"
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install -r scripts/requirements.txt
+
+      # ── Decode the gzip-compressed, base64-encoded secret ──────────────────
+      - name: Restore private Python script from secret
+        env:
+          PYTHON_SCRIPT: ${{ secrets.PYTHON_SCRIPT }}
+        run: |
+          echo "Decoding PYTHON_SCRIPT secret…"
+          echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
+          echo "✓ Decoded successfully ($(wc -c < scripts/process_notification.py) bytes)"
+
+      # ── Download CNN model (required by process_notification.py) ──────────
+      - name: Download CNN model
+        run: |
+          wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
+            -O scripts/anna_cnn_v2.keras
+
+      # ── Syntax-check decoded script ────────────────────────────────────────
+      - name: Syntax-check decoded script
+        run: |
+          python3 -m py_compile scripts/process_notification.py
+          echo "✓ Syntax OK"
+
+      - name: Run Python report generator
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          echo "Running process_notification.py..."
+          python3 scripts/process_notification.py "${{ inputs.new_ids_csv }}" data/notifications.json
+          echo "✓ Script completed successfully"
+
+      # ── Pack every output into ONE password-protected zip ─────────────────
+      # Password is stored in the repo secret ZIP_PASSWORD
+      # (Settings → Secrets and variables → Actions)
+      - name: Create encrypted ZIP
+        if: always()
+        env:
+          ZIP_PASSWORD: ${{ secrets.ZIP_PASSWORD }}
+        run: |
+          pip install pyzipper
+          python3 - <<'EOF'
+          import os, glob, pyzipper
+
+          password = os.environ["ZIP_PASSWORD"].encode("utf-8")
+          run_id = os.environ["GITHUB_RUN_ID"]
+          out = f"outputs-{run_id}.zip"
+
+          # Files and folders previously uploaded as separate artifacts
+          patterns = [
+              "anna_results.csv",
+              "anna_summary_*.csv",
+              "students.csv",
+              "result_pages",
+              "generated_files",
+          ]
+
+          files = []
+          for p in patterns:
+              for match in glob.glob(p):
+                  if os.path.isdir(match):
+                      for root, _, names in os.walk(match):
+                          files += [os.path.join(root, n) for n in names]
+                  else:
+                      files.append(match)
+
+          if not files:
+              print("::warning::No output files found, skipping zip")
+              raise SystemExit(0)
+
+          with pyzipper.AESZipFile(out, "w",
+                                   compression=pyzipper.ZIP_DEFLATED,
+                                   encryption=pyzipper.WZ_AES) as zf:
+              zf.setpassword(password)
+              zf.setencryption(pyzipper.WZ_AES, nbits=256)
+              for f in files:
+                  zf.write(f, arcname=f)
+
+          print(f"✓ Created {out} with {len(files)} files")
+          EOF
+
+      - name: Upload encrypted ZIP
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: outputs-${{ github.run_id }}
+          path: outputs-${{ github.run_id }}.zip
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 0
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "================================================"
+          echo "PROCESS COMPLETE"
+          echo "NEW NOTIFICATIONS : ${{ inputs.new_count }}"
+          echo "FIRST TITLE       : ${{ inputs.first_title }}"
+          echo "IDS               : ${{ inputs.new_ids_csv }}"
+          echo "================================================"
