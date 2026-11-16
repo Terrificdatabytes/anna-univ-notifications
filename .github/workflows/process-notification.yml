@@ -18,7 +18,7 @@ on:
 
 jobs:
   process:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       contents: read
@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7.0.1
 
       - name: Display run info
         run: |
@@ -37,13 +37,17 @@ jobs:
           echo "START TIME        : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           echo "================================================"
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
+      # ── Install uv and Python 3.12 with automatic wheel caching ──────────
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: '3.12'
+          enable-cache: true
+          cache-dependency-glob: "scripts/requirements.txt"
 
+      # ── Fast parallel install of all dependencies (incl. pyzipper) ───────
       - name: Install Python dependencies
-        run: pip install -r scripts/requirements.txt
+        run: uv pip install --system -r scripts/requirements.txt
 
       # ── Decode the gzip-compressed, base64-encoded secret ──────────────────
       - name: Restore private Python script from secret
@@ -54,11 +58,40 @@ jobs:
           echo "$PYTHON_SCRIPT" | base64 -d | gunzip > scripts/process_notification.py
           echo "✓ Decoded successfully ($(wc -c < scripts/process_notification.py) bytes)"
 
-      # ── Download CNN model (required by process_notification.py) ──────────
-      - name: Download CNN model
+      # ── Cache the CNN model, with an integrity check before trusting it ───
+      - name: Cache CNN model
+        id: cache-cnn
+        uses: actions/cache@v6.1.0
+        with:
+          path: scripts/anna_cnn_v2.keras
+          key: cnn-model-anna-v2
+
+      - name: Verify cached model (if restored)
+        if: steps.cache-cnn.outputs.cache-hit == 'true'
         run: |
-          wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
-            -O scripts/anna_cnn_v2.keras
+          SIZE=$(wc -c < scripts/anna_cnn_v2.keras)
+          echo "Cached model size: ${SIZE} bytes"
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "::warning::Cached model looks too small (${SIZE} bytes) — treating as invalid"
+            rm -f scripts/anna_cnn_v2.keras
+          fi
+
+      - name: Download CNN model (on cache miss or failed verification)
+        run: |
+          if [ ! -f scripts/anna_cnn_v2.keras ]; then
+            echo "Downloading model from Hugging Face…"
+            wget "https://huggingface.co/TDB001/COE-SCRAPPER-CNN/resolve/main/anna_cnn_v2.keras?download=true" \
+              -O scripts/anna_cnn_v2.keras
+
+            SIZE=$(wc -c < scripts/anna_cnn_v2.keras)
+            echo "Downloaded size: ${SIZE} bytes"
+            if [ "$SIZE" -lt 1000000 ]; then
+              echo "::error::Downloaded model is suspiciously small (${SIZE} bytes) — likely not a real model file"
+              exit 1
+            fi
+          else
+            echo "✓ Using verified cached model."
+          fi
 
       # ── Syntax-check decoded script ────────────────────────────────────────
       - name: Syntax-check decoded script
@@ -82,7 +115,6 @@ jobs:
         env:
           ZIP_PASSWORD: ${{ secrets.ZIP_PASSWORD }}
         run: |
-          pip install pyzipper
           python3 - <<'EOF'
           import os, glob, pyzipper
 
@@ -90,7 +122,6 @@ jobs:
           run_id = os.environ["GITHUB_RUN_ID"]
           out = f"outputs-{run_id}.zip"
 
-          # Files and folders previously uploaded as separate artifacts
           patterns = [
               "anna_results.csv",
               "anna_summary_*.csv",
@@ -125,7 +156,7 @@ jobs:
 
       - name: Upload encrypted ZIP
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: outputs-${{ github.run_id }}
           path: outputs-${{ github.run_id }}.zip
