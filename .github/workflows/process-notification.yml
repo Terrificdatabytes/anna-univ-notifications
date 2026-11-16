@@ -38,12 +38,18 @@ jobs:
           echo "================================================"
 
       # ── Install uv and Python 3.12 with automatic wheel caching ──────────
+      # UV_PYTHON_PREFERENCE forces uv to always fetch/use its own managed
+      # Python build, instead of reusing the OS-provided Python 3.12 at
+      # /usr — which Ubuntu 24.04 marks "externally managed" (PEP 668) and
+      # refuses to pip-install into directly.
       - name: Setup Python and uv
         uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: '3.12'
           enable-cache: true
           cache-dependency-glob: "scripts/requirements.txt"
+        env:
+          UV_PYTHON_PREFERENCE: only-managed
 
       # ── Fast parallel install of all dependencies (incl. pyzipper) ───────
       - name: Install Python dependencies
