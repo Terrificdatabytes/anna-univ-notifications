@@ -1,4 +1,4 @@
-name: Process Notification
+name: Process Notification PIP old
 
 on:
   workflow_dispatch:
