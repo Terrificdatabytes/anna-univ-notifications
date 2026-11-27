@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "baddbdba",
+      "title": "Autonomous college students are requested to pay the registration fee for the special examinations through the following link: https://coe.annauniv.edu",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "2b99d1cc",
       "title": "Kind Attention to All Institutions:-The Notification for the Special Arrear Examinations – Nov./Dec. 2026 is available on the Anna University COE website.Institutions and students are instructed to refer to the notification for further details. - Click Here",
       "link": "https://coe.annauniv.edu/aucoe/pdf/2026_nd/nd26_special_exam.pdf",
@@ -109,7 +115,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-11-27T12:34:24.898Z",
+  "lastUpdated": "2026-11-27T12:35:44.012Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 18
+  "count": 19
 }
