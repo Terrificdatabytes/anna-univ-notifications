@@ -1,6 +1,12 @@
 {
   "notifications": [
     {
+      "id": "8667fda9",
+      "title": "NOTIFICATION:- Kind attention to all candidates belonging to Non-Autonomous and Autonomous Colleges.Candidates are requested to send an email to coewp2020@gmail.com regarding any difficulties or discrepancies encountered while registering for subjects under the recently announced Special Examination.",
+      "link": null,
+      "isNew": true
+    },
+    {
       "id": "baddbdba",
       "title": "Autonomous college students are requested to pay the registration fee for the special examinations through the following link: https://coe.annauniv.edu",
       "link": null,
@@ -115,7 +121,7 @@
       "isNew": true
     }
   ],
-  "lastUpdated": "2026-11-28T04:17:36.976Z",
+  "lastUpdated": "2026-11-28T04:18:36.990Z",
   "lastChecked": "2026-04-07T11:59:05.041Z",
-  "count": 19
+  "count": 20
 }
